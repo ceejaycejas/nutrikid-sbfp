@@ -1,0 +1,2078 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    /* Talkmolly-inspired Dashboard Styling */
+    body {
+        background: #f8fafc;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .dashboard-wrapper {
+        display: flex;
+        min-height: 100vh;
+    }
+    
+    /* Left Sidebar - Dark Blue */
+    .sidebar {
+        width: 250px;
+        background: #1e3a8a;
+        color: white;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+    
+    .sidebar-header {
+        padding: 2rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .sidebar-logo i {
+        color: #10b981;
+        font-size: 1.8rem;
+    }
+    
+    .sidebar-nav {
+        padding: 1rem 0;
+    }
+    
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+    }
+    
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-left-color: #3b82f6;
+    }
+    
+    .nav-item.active {
+        background: rgba(59, 130, 246, 0.2);
+        color: white;
+        border-left-color: #3b82f6;
+    }
+    
+    .nav-item i {
+        width: 20px;
+        text-align: center;
+    }
+    
+    .sidebar-footer {
+        position: absolute;
+        bottom: 1rem;
+        left: 1.5rem;
+        right: 1.5rem;
+        text-align: center;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    /* Main Content Area */
+    .main-content {
+        margin-left: 250px;
+        flex: 1;
+        padding: 0;
+    }
+    
+    /* Dashboard Content */
+    .dashboard-content {
+        padding: 2rem;
+    }
+    
+    /* Profile Dropdown Styles */
+    .profile-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    
+    /* School Filter Dropdown Styling */
+    #schoolFilter {
+        background: rgba(255, 255, 255, 0.25) !important;
+        border: 2px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 8px;
+        padding: 0.6rem 2.5rem 0.6rem 1rem;
+        color: white !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        min-width: 280px;
+        max-width: 300px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        position: relative;
+    }
+    
+    #schoolFilter:hover {
+        background: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    #schoolFilter:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.7) !important;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+    }
+    
+    #schoolFilter option {
+        background: #667eea !important;
+        color: white !important;
+        padding: 0.5rem;
+    }
+    
+    .dashboard-profile-header a:hover {
+        color: white !important;
+        animation: bellShake 0.5s ease-in-out;
+        transform: scale(1.1);
+        transition: all 0.2s ease;
+    }
+    
+    @keyframes bellShake {
+        0%, 100% { transform: scale(1.1) rotate(0deg); }
+        25% { transform: scale(1.1) rotate(-10deg); }
+        50% { transform: scale(1.1) rotate(10deg); }
+        75% { transform: scale(1.1) rotate(-5deg); }
+    }
+    
+    /* Notification badge positioned over bell icon */
+    .notification-badge {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px; /* pill shape */
+        background: #dc3545;
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 999px; /* pill */
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+        z-index: 20;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box; /* include border in sizing */
+        line-height: 1;
+        font-size: 0.7rem;
+        font-weight: 700;
+        white-space: nowrap;
+        text-align: center;
+    }
+    
+    /* Smaller screens: slightly reduce badge size */
+    @media (max-width: 576px) {
+        .notification-badge { 
+            min-width: 18px; 
+            height: 18px; 
+            font-size: 0.65rem; 
+            right: 8px; 
+            top: 6px; 
+        }
+    }
+    
+    .profile-dropdown button:hover {
+        color: white !important;
+        transform: scale(1.1);
+        transition: all 0.2s ease;
+        animation: none !important;
+        text-shadow: 0 0 4px rgba(0,0,0,0.5) !important;
+        filter: drop-shadow(0 0 2px rgba(0,0,0,0.7)) !important;
+    }
+    
+    .profile-dropdown button:hover i {
+        color: white !important;
+        text-shadow: 0 0 4px rgba(0,0,0,0.5) !important;
+    }
+    
+    .profile-dropdown.open .profile-menu {
+        display: block !important;
+        animation: fadeInMenu 0.2s ease;
+    }
+    
+    .profile-menu a:hover {
+        background-color: #f8f9fa !important;
+        color: #4CAF50 !important;
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    .profile-menu a:last-child:hover {
+        background-color: #fff5f5 !important;
+        color: #dc3545 !important;
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    @keyframes fadeInMenu {
+        from { 
+            opacity: 0; 
+            transform: translateY(-10px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+    }
+    
+    /* Top Row - System Metrics */
+    .metrics-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .metric-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+    }
+    
+    .metric-icon.uptime { background: #10b981; }
+    .metric-icon.memory { background: #ec4899; }
+    .metric-icon.disk { background: #06b6d4; }
+    .metric-icon.swap { background: #1e3a8a; }
+    .metric-icon.load { background: #f59e0b; }
+    
+    .metric-title {
+        font-size: 0.875rem;
+        color: #64748b;
+        margin: 0;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1e293b;
+        margin: 0;
+    }
+    
+    .metric-status {
+        font-size: 0.75rem;
+        color: #10b981;
+        margin-top: 0.5rem;
+    }
+    
+    /* Middle Row - Analytics */
+    .analytics-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .analytics-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .card-title i {
+        color: #3b82f6;
+    }
+    
+    .dropdown-toggle {
+        background: none;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        color: #64748b;
+        cursor: pointer;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 250px;
+    }
+    
+    /* Bottom Row - Data Tables */
+    .tables-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    
+    .data-table th {
+        background: #f8fafc;
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.875rem;
+    }
+    
+    .data-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        font-size: 0.875rem;
+    }
+    
+    .data-table td:first-child {
+        max-width: 300px;
+        min-width: 200px;
+    }
+    
+    .data-table tr:hover {
+        background: #f8fafc;
+    }
+    
+    .member-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .pagination-info {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+    
+    .pagination-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .pagination-btn {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #e2e8f0;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        color: #64748b;
+        transition: all 0.3s ease;
+    }
+    
+    .pagination-btn:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+    }
+    
+    .pagination-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .metrics-row {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .analytics-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .tables-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        
+        .main-content {
+            margin-left: 0;
+        }
+        
+        .metrics-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .search-bar {
+            width: 200px;
+        }
+    }
+    
+    /* Donut Chart Legend */
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+    
+    .legend-color.active { background: #3b82f6; }
+    .legend-color.inactive { background: #ec4899; }
+    .legend-color.suspend { background: #94a3b8; }
+    
+    /* System Analytics & Reports Section */
+    .analytics-section {
+        margin: 2rem 0;
+    }
+    
+    .section-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .analytics-grid-extended {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .analytics-grid-secondary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .analytics-card-large {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    
+    .analytics-card-large:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
+    
+    .analytics-card-medium {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    
+    .analytics-card-medium:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-icon:hover {
+        background: #f1f5f9;
+        color: #3b82f6;
+        border-color: #3b82f6;
+    }
+    
+    .chart-container-large {
+        position: relative;
+        height: 350px;
+        margin: 1rem 0;
+        overflow: visible; /* Ensure labels are not clipped */
+    }
+    
+    /* Adjust height for school performance chart to accommodate more schools */
+    #schoolPerformanceChart {
+        max-height: 600px;
+    }
+    
+    /* Ensure school performance chart container has enough space for labels */
+    .chart-container-large canvas#schoolPerformanceChart {
+        padding-left: 0 !important; /* Let Chart.js handle padding via layout.padding */
+    }
+    
+    #schoolPerformanceChart ~ .chart-container-large {
+        min-height: 400px;
+    }
+    
+    .chart-container-medium {
+        position: relative;
+        height: 250px;
+        margin: 1rem 0;
+    }
+    
+    /* Chart Insights */
+    .chart-insights {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .insight-item {
+        text-align: center;
+    }
+    
+    .insight-label {
+        display: block;
+        font-size: 0.875rem;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .insight-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .insight-value.danger { color: #ef4444; }
+    .insight-value.success { color: #10b981; }
+    .insight-value.info { color: #3b82f6; }
+    
+    /* Performance Metrics */
+    .performance-metrics {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .metric-row {
+        display: flex;
+        justify-content: space-around;
+    }
+    
+    .metric-item {
+        text-align: center;
+    }
+    
+    .metric-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+    
+    .metric-label {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+    
+    /* Distribution Summary */
+    .distribution-summary {
+        margin-top: 1rem;
+    }
+    
+    .age-group-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    
+    .age-range {
+        font-weight: 500;
+        color: #1e293b;
+        min-width: 80px;
+    }
+    
+    .age-count {
+        font-weight: bold;
+        color: #3b82f6;
+        min-width: 40px;
+        text-align: center;
+    }
+    
+    .age-bar {
+        flex: 1;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .age-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    
+    /* Gender Summary */
+    .gender-summary {
+        margin-top: 1rem;
+    }
+    
+    .gender-item {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    
+    .gender-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .gender-label {
+        font-weight: 500;
+        color: #1e293b;
+    }
+    
+    .gender-percentage {
+        font-weight: bold;
+        color: #3b82f6;
+    }
+    
+    .gender-bar {
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .gender-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ec4899, #be185d);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+    
+    .gender-count {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+    
+    /* Risk Summary */
+    .risk-summary {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 1rem;
+    }
+    
+    .risk-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-radius: 12px;
+        text-align: center;
+        min-width: 100px;
+    }
+    
+    .risk-item.critical {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+    }
+    
+    .risk-item.warning {
+        background: #fffbeb;
+        border: 1px solid #fed7aa;
+    }
+    
+    .risk-item.healthy {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+    }
+    
+    .risk-icon {
+        font-size: 1.5rem;
+    }
+    
+    .risk-item.critical .risk-icon { color: #ef4444; }
+    .risk-item.warning .risk-icon { color: #f59e0b; }
+    .risk-item.healthy .risk-icon { color: #10b981; }
+    
+    .risk-count {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+    
+    .risk-label {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+    
+    /* Report Cards */
+    .report-cards-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    
+    .report-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
+    
+    .report-card.consolidated {
+        border-left: 4px solid #8b5cf6;
+    }
+    
+    .report-card.performance {
+        border-left: 4px solid #06b6d4;
+    }
+    
+    .report-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .report-card.consolidated .report-icon {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+    
+    .report-card.performance .report-icon {
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+    }
+    
+    .report-content {
+        flex: 1;
+    }
+    
+    .report-content h4 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .report-content p {
+        color: #64748b;
+        margin: 0 0 1rem 0;
+        font-size: 0.875rem;
+    }
+    
+    .report-stats {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .stat-item {
+        background: #f1f5f9;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        color: #475569;
+        font-weight: 500;
+    }
+    
+    .report-btn {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .report-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    /* Responsive Design for Analytics */
+    @media (max-width: 1200px) {
+        .analytics-grid-extended {
+            grid-template-columns: 1fr;
+        }
+        
+        .analytics-grid-secondary {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .report-cards-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        
+        .main-content {
+            margin-left: 0;
+        }
+        
+        .metrics-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .analytics-grid-secondary {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-insights {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .metric-row {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .risk-summary {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .report-card {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .report-stats {
+            justify-content: center;
+        }
+        
+        .metrics-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .dashboard-content {
+            padding: 1rem;
+        }
+        
+        .metric-card {
+            padding: 1rem;
+        }
+    }
+    
+    @media (max-width: 380px) {
+        .dashboard-content {
+            padding: 0.75rem;
+        }
+    }
+    
+    /* Force profile header layout - Override any other CSS */
+    .dashboard-profile-header {
+        display: flex !important;
+        align-items: center !important;
+        gap: 1rem !important;
+        justify-content: flex-start !important;
+    }
+</style>
+
+<div class="dashboard-wrapper">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="bi bi-heart-pulse"></i>
+                NutriKid
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('super_admin.dashboard') }}" class="nav-item active">
+                <i class="bi bi-speedometer2"></i>
+                Dashboard
+            </a>
+            <a href="{{ url_for('super_admin.super_admins') }}" class="nav-item">
+                <i class="bi bi-people"></i>
+                Manage Users
+            </a>
+            <a href="{{ url_for('super_admin.schools') }}" class="nav-item">
+                <i class="bi bi-building"></i>
+                Manage Schools
+            </a>
+            <a href="{{ url_for('super_admin.students') }}" class="nav-item">
+                <i class="bi bi-person-lines-fill"></i>
+                Manage Students
+            </a>
+            <a href="{{ url_for('super_admin.reports') }}" class="nav-item">
+                <i class="bi bi-graph-up"></i>
+                Reports
+            </a>
+            <a href="{{ url_for('super_admin.admins') }}" class="nav-item">
+                <i class="bi bi-gear"></i>
+                Settings
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            Copyright ©2024 NutriKid System
+        </div>
+    </div>
+    
+    <!--Main Content -->
+    <div class="main-content">
+        <!-- Profile Header -->
+        <div class="dashboard-profile-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; border-radius: 12px !important; padding: 1rem 1.5rem !important; margin: 1.5rem 1.5rem 0 1.5rem !important; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3) !important; display: flex !important; align-items: center !important; gap: 1rem !important; color: white !important; justify-content: space-between !important;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                {% if current_user.profile_image %}
+                <img src="{{ url_for('static', filename=current_user.profile_image) }}" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; object-fit: contain; object-position: center; border: 3px solid white; padding: 0; flex-shrink: 0; display: block; background: white;">
+                {% else %}
+                <img src="{{ url_for('static', filename='img/LOGO1.png') }}" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 3px solid white;">
+                {% endif %}
+                <div>
+                    <h5 style="margin: 0; color: white; font-weight: 600;">{{ current_user.name }}</h5>
+                    <span style="font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3);">
+                        <i class="bi bi-shield-check"></i> SUPER ADMIN
+                    </span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem; flex-shrink: 0;">
+                <!-- School Filter Dropdown -->
+                <div style="position: relative; z-index: 10;">
+                    <select id="schoolFilter" onchange="filterBySchool(this.value)" style="background: rgba(255, 255, 255, 0.25) !important; border: 2px solid rgba(255, 255, 255, 0.4) !important; border-radius: 8px; padding: 0.6rem 2.5rem 0.6rem 1rem; color: white !important; font-weight: 500; font-size: 0.95rem; cursor: pointer; appearance: none; min-width: 280px; max-width: 300px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <option value="" style="background: #667eea; color: white;">All Schools</option>
+                        {% if all_schools %}
+                            {% for school in all_schools %}
+                            <option value="{{ school.id }}" {% if selected_school_id == school.id %}selected{% endif %} style="background: #667eea; color: white;">{{ school.name }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="" style="background: #667eea; color: white;">No schools available</option>
+                        {% endif %}
+                    </select>
+                    <i class="bi bi-chevron-down" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); color: white; pointer-events: none; font-size: 1rem; z-index: 1;"></i>
+                </div>
+                
+                {% set unread = current_user.notifications|selectattr('is_read', 'equalto', False)|list|length %}
+                <a href="{{ url_for('account.notifications') }}" style="position: relative; color: white; opacity: 1; text-decoration: none; font-size: 1.2rem; transition: color 0.2s ease;">
+                    <i class="bi bi-bell"></i>
+                    {% if unread > 0 %}
+                    <span class="notification-badge" role="status" aria-label="{{ unread }} unread notifications">{{ (unread if unread <= 99 else '99+') }}</span>
+                    {% endif %}
+                </a>
+                
+                <!-- Profile Dropdown -->
+                <div class="profile-dropdown" style="position: relative; display: inline-block;">
+                    <button onclick="toggleDropdown(event)" style="background: transparent; border: none; color: white !important; opacity: 1; cursor: pointer; font-size: 1.2rem; padding: 0.25rem; transition: color 0.2s ease; text-shadow: 0 0 2px rgba(0,0,0,0.3); filter: drop-shadow(0 0 1px rgba(0,0,0,0.5));">
+                        <i class="bi bi-caret-down-fill" style="color: white !important; text-shadow: 0 0 2px rgba(0,0,0,0.3);"></i>
+                    </button>
+                    <div class="profile-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 160px; z-index: 1000; margin-top: 0.5rem;">
+                        <a href="{{ url_for('main.index') }}" style="display: flex; align-items: center; padding: 0.75rem 1rem; color: #2c3e50; text-decoration: none; border-bottom: 1px solid #f8f9fa;">
+                            <i class="bi bi-house" style="margin-right: 0.5rem;"></i> Home
+                        </a>
+                        <a href="{{ url_for('account.settings') }}" style="display: flex; align-items: center; padding: 0.75rem 1rem; color: #2c3e50; text-decoration: none; border-bottom: 1px solid #f8f9fa;">
+                            <i class="bi bi-gear" style="margin-right: 0.5rem;"></i> Settings
+                        </a>
+                        <a href="{{ url_for('auth.logout') }}" style="display: flex; align-items: center; padding: 0.75rem 1rem; color: #dc3545; text-decoration: none;">
+                            <i class="bi bi-box-arrow-right" style="margin-right: 0.5rem;"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Top Row - System Metrics -->
+            <div class="metrics-row">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon uptime">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <p class="metric-title">System Uptime</p>
+                    </div>
+                    <h3 class="metric-value">14 Days 16 Hours 34 Min 59 Sec</h3>
+                    <p class="metric-status">Active</p>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon memory">
+                            <i class="bi bi-cpu"></i>
+                        </div>
+                        <p class="metric-title">Database Usage</p>
+                    </div>
+                    <h3 class="metric-value">{{ system_metrics.students_with_bmi }}GB of {{ total_students }}GB</h3>
+                    <p class="metric-status">Healthy</p>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon disk">
+                            <i class="bi bi-hdd"></i>
+                        </div>
+                        <p class="metric-title">Storage</p>
+                    </div>
+                    <h3 class="metric-value">{{ total_students }}GB Free of {{ total_students + 50 }}GB</h3>
+                    <p class="metric-status">Available</p>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon swap">
+                            <i class="bi bi-memory"></i>
+                        </div>
+                        <p class="metric-title">Active Users</p>
+                    </div>
+                    <h3 class="metric-value">{{ system_metrics.total_users }}GB free of {{ system_metrics.total_users + 20 }}GB</h3>
+                    <p class="metric-status">Online</p>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon load">
+                            <i class="bi bi-speedometer"></i>
+                        </div>
+                        <p class="metric-title">Performance</p>
+                    </div>
+                    <h3 class="metric-value">0.01 0.01 0</h3>
+                    <p class="metric-status">Optimal</p>
+                </div>
+            </div>
+            
+            <!-- Middle Row - Analytics -->
+            <div class="analytics-row">
+                <!-- Student Registrations Chart -->
+                <div class="analytics-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="bi bi-graph-up"></i>
+                            Student Registrations
+                        </h3>
+                        <select class="dropdown-toggle">
+                            <option>Last 12 Months</option>
+                            <option>Last 6 Months</option>
+                            <option>Last 3 Months</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="registrationsChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Student Status Distribution -->
+                <div class="analytics-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="bi bi-pie-chart"></i>
+                            Student Status
+                        </h3>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color active"></div>
+                            <span>Active</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color inactive"></div>
+                            <span>At Risk</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color suspend"></div>
+                            <span>Beneficiaries</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- System Requirements -->
+                <div class="analytics-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="bi bi-gear"></i>
+                            System Info
+                        </h3>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <h6 style="color: #64748b; margin-bottom: 0.75rem;">SOFTWARE</h6>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="bi bi-laptop text-primary"></i>
+                                <span style="font-size: 0.875rem;">OS Windows 10</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="bi bi-server text-success"></i>
+                                <span style="font-size: 0.875rem;">Server Flask 2.0</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="bi bi-code-slash text-info"></i>
+                                <span style="font-size: 0.875rem;">Python 3.10</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h6 style="color: #64748b; margin-bottom: 0.75rem;">HARDWARE</h6>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="bi bi-cpu text-warning"></i>
+                                <span style="font-size: 0.875rem;">CPU Intel Core i7</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="bi bi-memory text-primary"></i>
+                                <span style="font-size: 0.875rem;">RAM 16GB</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="bi bi-hdd text-secondary"></i>
+                                <span style="font-size: 0.875rem;">Storage SSD 500GB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Analytics & Reports Section -->
+            <div class="analytics-section">
+                <div class="section-header">
+                    <h2 style="color: #1e293b; margin: 0; display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="bi bi-graph-up-arrow" style="color: #3b82f6; font-size: 1.5rem;"></i>
+                        System Analytics & Reports
+                    </h2>
+                    <p style="color: #64748b; margin: 0.5rem 0 0 0; font-size: 1rem;">
+                        Consolidated monitoring and analysis for Division SBFP Coordinator
+                    </p>
+                </div>
+                
+                <!-- Analytics Grid -->
+                <div class="analytics-grid-extended">
+                    <!-- BMI Distribution Analysis -->
+                    <div class="analytics-card-large">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="bi bi-heart-pulse"></i>
+                                Student Health Status Analysis
+                            </h3>
+                            <div class="card-actions">
+                                <select class="dropdown-toggle">
+                                    <option>All Schools</option>
+                                    <option>By School</option>
+                                    <option>By Age Group</option>
+                                </select>
+                                <button class="btn-icon">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container-large">
+                            <canvas id="healthStatusChart"></canvas>
+                        </div>
+                        <div class="chart-insights">
+                            <div class="insight-item">
+                                <span class="insight-label">Students at Risk:</span>
+                                <span class="insight-value danger">{{ system_metrics.at_risk_students }}</span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="insight-label">Beneficiary Coverage:</span>
+                                <span class="insight-value success">{{ "%.1f"|format(system_metrics.beneficiary_coverage) }}%</span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="insight-label">Health Data Complete:</span>
+                                <span class="insight-value info">{{ system_metrics.students_with_bmi }}/{{ total_students }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- School Performance Comparison -->
+                    <div class="analytics-card-large">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="bi bi-trophy"></i>
+                                School Performance Overview
+                            </h3>
+                            <div class="card-actions">
+                                <select class="dropdown-toggle">
+                                    <option>Student Count</option>
+                                    <option>Health Metrics</option>
+                                    <option>Beneficiary Rate</option>
+                                </select>
+                                <button class="btn-icon">
+                                    <i class="bi bi-fullscreen"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container-large" style="min-height: 450px; max-height: 600px;">
+                            <canvas id="schoolPerformanceChart"></canvas>
+                        </div>
+                        <div class="performance-metrics">
+                            <div class="metric-row">
+                                <div class="metric-item">
+                                    <div class="metric-number">{{ school_stats[0].student_count if school_stats else 0 }}</div>
+                                    <div class="metric-label">Top School</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-number">{{ "%.1f"|format(total_students / total_schools if total_schools > 0 else 0) }}</div>
+                                    <div class="metric-label">Avg per School</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-number">{{ total_schools }}</div>
+                                    <div class="metric-label">Total Schools</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Secondary Analytics Row -->
+                <div class="analytics-grid-secondary">
+                    <!-- Age Group Distribution -->
+                    <div class="analytics-card-medium">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="bi bi-people"></i>
+                                Age Group Distribution
+                            </h3>
+                        </div>
+                        <div class="chart-container-medium">
+                            <canvas id="ageDistributionChart"></canvas>
+                        </div>
+                        <div class="distribution-summary">
+                            <div class="age-group-item">
+                                <span class="age-range">5-8 years</span>
+                                <span class="age-count">{{ age_groups['5-8'] }}</span>
+                                <div class="age-bar">
+                                    <div class="age-fill" data-width="{% if total_students > 0 %}{{ (age_groups['5-8'] / total_students * 100) }}{% else %}0{% endif %}"></div>
+                                </div>
+                            </div>
+                            <div class="age-group-item">
+                                <span class="age-range">9-12 years</span>
+                                <span class="age-count">{{ age_groups['9-12'] }}</span>
+                                <div class="age-bar">
+                                    <div class="age-fill" data-width="{% if total_students > 0 %}{{ (age_groups['9-12'] / total_students * 100) }}{% else %}0{% endif %}"></div>
+                                </div>
+                            </div>
+                            <div class="age-group-item">
+                                <span class="age-range">13-16 years</span>
+                                <span class="age-count">{{ age_groups['13-16'] }}</span>
+                                <div class="age-bar">
+                                    <div class="age-fill" data-width="{% if total_students > 0 %}{{ (age_groups['13-16'] / total_students * 100) }}{% else %}0{% endif %}"></div>
+                                </div>
+                            </div>
+                            <div class="age-group-item">
+                                <span class="age-range">17+ years</span>
+                                <span class="age-count">{{ age_groups['17+'] }}</span>
+                                <div class="age-bar">
+                                    <div class="age-fill" data-width="{% if total_students > 0 %}{{ (age_groups['17+'] / total_students * 100) }}{% else %}0{% endif %}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gender Distribution -->
+                    <div class="analytics-card-medium">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="bi bi-gender-ambiguous"></i>
+                                Gender Distribution
+                            </h3>
+                        </div>
+                        <div class="chart-container-medium">
+                            <canvas id="genderDistributionChart"></canvas>
+                        </div>
+                        <div class="gender-summary">
+                            {% if gender_distribution %}
+                                {% for gender in gender_distribution %}
+                                <div class="gender-item">
+                                    <div class="gender-info">
+                                        <span class="gender-label">{{ gender.gender or 'Unknown' }}</span>
+                                        <span class="gender-percentage">{{ "%.1f"|format((gender.count / total_students * 100) if total_students > 0 else 0) }}%</span>
+                                    </div>
+                                    <div class="gender-bar">
+                                        <div class="gender-fill" data-width="{% if total_students > 0 %}{{ (gender.count / total_students * 100) }}{% else %}0{% endif %}"></div>
+                                    </div>
+                                    <span class="gender-count">{{ gender.count }} students</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-data">
+                                    <i class="bi bi-inbox"></i>
+                                    <p>No gender data available</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Assessment Trends -->
+                    <div class="analytics-card-medium">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Risk Assessment Trends
+                            </h3>
+                        </div>
+                        <div class="chart-container-medium">
+                            <canvas id="riskTrendsChart"></canvas>
+                        </div>
+                        <div class="risk-summary">
+                            <div class="risk-item critical">
+                                <div class="risk-icon">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                </div>
+                                <div class="risk-info">
+                                    <div class="risk-count">{{ bmi_distribution.severely_underweight + bmi_distribution.obese }}</div>
+                                    <div class="risk-label">Critical Cases</div>
+                                </div>
+                            </div>
+                            <div class="risk-item warning">
+                                <div class="risk-icon">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </div>
+                                <div class="risk-info">
+                                    <div class="risk-count">{{ bmi_distribution.underweight + bmi_distribution.overweight }}</div>
+                                    <div class="risk-label">At Risk</div>
+                                </div>
+                            </div>
+                            <div class="risk-item healthy">
+                                <div class="risk-icon">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <div class="risk-info">
+                                    <div class="risk-count">{{ bmi_distribution.normal }}</div>
+                                    <div class="risk-label">Healthy</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Report Cards Row -->
+                <div class="report-cards-row">
+                    <div class="report-card consolidated">
+                        <div class="report-icon">
+                            <i class="bi bi-file-earmark-bar-graph"></i>
+                        </div>
+                        <div class="report-content">
+                            <h4>Consolidated Student Nutritional Status Report</h4>
+                            <p>Comprehensive analysis of student health metrics across all schools</p>
+                            <div class="report-stats">
+                                <span class="stat-item">{{ total_students }} Total Students</span>
+                                <span class="stat-item">{{ system_metrics.students_with_bmi }} With BMI Data</span>
+                                <span class="stat-item">{{ "%.1f"|format(system_metrics.beneficiary_coverage) }}% Coverage</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-card performance">
+                        <div class="report-icon">
+                            <i class="bi bi-trophy-fill"></i>
+                        </div>
+                        <div class="report-content">
+                            <h4>School Performance Overview</h4>
+                            <p>Comparative analysis of school performance and student health outcomes</p>
+                            <div class="report-stats">
+                                <span class="stat-item">{{ total_schools }} Schools</span>
+                                <span class="stat-item">{{ "%.1f"|format(total_students / total_schools if total_schools > 0 else 0) }} Avg Students</span>
+                                <span class="stat-item">{{ system_metrics.at_risk_students }} At Risk</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Row - Data Tables -->
+            <div class="tables-row">
+                <!-- Recent Student Activities -->
+                <div class="table-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="bi bi-telephone"></i>
+                            Student Activities
+                        </h3>
+                        <select class="dropdown-toggle">
+                            <option>Today</option>
+                            <option>Last 7 days</option>
+                            <option>Last Month</option>
+                            <option>Custom date</option>
+                        </select>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>STUDENT</th>
+                                <th>SCHOOL</th>
+                                <th>STATUS</th>
+                                <th>ACTIVITY</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recent_activities %}
+                                {% for activity in recent_activities[:8] %}
+                                <tr>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <div class="member-avatar">
+                                                {{ activity.activity_description[0].upper() if activity.activity_description else 'S' }}
+                                            </div>
+                                            <span>{{ activity.activity_description }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ activity.school_name or 'N/A' }}</td>
+                                    <td>
+                                        <span style="padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; background: #d1fae5; color: #065f46;">
+                                            Registered
+                                        </span>
+                                    </td>
+                                    <td>{{ activity.user_role }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: #64748b; padding: 2rem;">
+                                        No recent activities
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    <div class="pagination">
+                        <div class="pagination-info">
+                            Showing 1-8 of {{ recent_activities|length if recent_activities else 0 }} results
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn">Prev</button>
+                            <button class="pagination-btn active">1</button>
+                            <button class="pagination-btn">2</button>
+                            <button class="pagination-btn">3</button>
+                            <button class="pagination-btn">Next</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- School Reports -->
+                <div class="table-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="bi bi-chat-dots"></i>
+                            School Reports
+                        </h3>
+                        <select class="dropdown-toggle">
+                            <option>Today</option>
+                            <option>Last 7 days</option>
+                            <option>Last Month</option>
+                        </select>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>SCHOOL</th>
+                                <th>ADMIN</th>
+                                <th>STATUS</th>
+                                <th>STUDENTS</th>
+                                <th>DATE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if school_stats %}
+                                {% for school in school_stats[:8] %}
+                                <tr>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <div class="member-avatar">
+                                                {{ school.name[0].upper() if school.name else 'S' }}
+                                            </div>
+                                            <span style="font-size: 0.85rem; word-wrap: break-word; max-width: 200px; display: inline-block;">{{ school.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>Admin</td>
+                                    <td>
+                                        <span style="padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; background: #dbeafe; color: #1e40af;">
+                                            Active
+                                        </span>
+                                    </td>
+                                    <td>{{ school.student_count }}</td>
+                                    <td>{{ moment().format('MMM DD') if moment else 'Dec 12' }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #64748b; padding: 2rem;">
+                                        No school data available
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    <div class="pagination">
+                        <div class="pagination-info">
+                            Showing 1-8 of {{ school_stats|length if school_stats else 0 }} results
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn">Prev</button>
+                            <button class="pagination-btn active">1</button>
+                            <button class="pagination-btn">2</button>
+                            <button class="pagination-btn">3</button>
+                            <button class="pagination-btn">Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Student Registrations Chart
+    const registrationsCtx = document.getElementById('registrationsChart').getContext('2d');
+    const monthlyData = JSON.parse('{{ monthly_registrations | tojson | safe }}');
+    
+    // Process monthly data
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const registrationCounts = new Array(12).fill(0);
+    
+    monthlyData.forEach(item => {
+        if (item.month >= 1 && item.month <= 12) {
+            registrationCounts[item.month - 1] = item.count;
+        }
+    });
+
+    // Generate SBFP Report
+    async function generateSBFPReport(e) {
+        // Use the event target if provided, otherwise try to find the button
+        const target = e && e.target ? e.target : null;
+        const button = target ? target.closest('.report-btn') : document.querySelector('.report-btn');
+        const originalContent = button ? button.innerHTML : 'Generate Report';
+
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+        }
+
+        // Make request to generate report endpoint
+        const REPORT_URL = '{{ url_for("super_admin.generate_sbfp_report") }}';
+        console.log('Fetching SBFP report from:', REPORT_URL);
+
+        try {
+            const response = await fetch(REPORT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                // Try to extract JSON error if available
+                let errText = 'Failed to generate report';
+                try {
+                    const j = await response.json();
+                    errText = j.error || errText;
+                } catch (_) {}
+                throw new Error(errText);
+            }
+
+            // Safely parse filename from Content-Disposition header
+            const disposition = response.headers.get('content-disposition') || '';
+            let filename = `SBFP_Beneficiaries_Report_${new Date().toISOString().slice(0,10)}.pdf`;
+            const filenameMatch = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+            if (filenameMatch && filenameMatch[1]) {
+                try { filename = decodeURIComponent(filenameMatch[1]); } catch (e) { filename = filenameMatch[1]; }
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            showNotification('SBFP Report generated successfully!', 'success');
+        } catch (error) {
+            console.error('Error generating SBFP report:', error);
+            showNotification('Failed to generate report: ' + (error.message || error), 'danger');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = originalContent;
+            }
+        }
+    }
+
+    // Show notification helper function
+    function showNotification(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: none;
+        `;
+        alertDiv.innerHTML = `
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            ${message}
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => { alertDiv.remove(); }, 5000);
+    }
+    const healthStatusCtx = document.getElementById('healthStatusChart').getContext('2d');
+    const bmiData = {
+        normal: parseInt("{{ bmi_distribution.normal or 0 }}"),
+        underweight: parseInt("{{ bmi_distribution.underweight or 0 }}"),
+        overweight: parseInt("{{ bmi_distribution.overweight or 0 }}"),
+        obese: parseInt("{{ bmi_distribution.obese or 0 }}"),
+        severely_underweight: parseInt("{{ bmi_distribution.severely_underweight or 0 }}")
+    };
+    
+    new Chart(healthStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Normal Weight', 'Underweight', 'Overweight', 'Obese', 'Severely Underweight'],
+            datasets: [{
+                data: [
+                    bmiData.normal,
+                    bmiData.underweight,
+                    bmiData.overweight,
+                    bmiData.obese,
+                    bmiData.severely_underweight
+                ],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',   // Normal - Green
+                    'rgba(255, 193, 7, 0.8)',   // Underweight - Yellow
+                    'rgba(253, 126, 20, 0.8)',  // Overweight - Orange
+                    'rgba(220, 53, 69, 0.8)',   // Obese - Red
+                    'rgba(108, 117, 125, 0.8)' // Severely Underweight - Grey
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(253, 126, 20, 1)',
+                    'rgba(220, 53, 69, 1)',
+                    'rgba(108, 117, 125, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // School Performance Chart
+    const schoolPerformanceCtx = document.getElementById('schoolPerformanceChart').getContext('2d');
+    const schoolData = JSON.parse('{{ school_stats | tojson | safe }}');
+    
+    const schoolNames = schoolData.map(school => school.name);
+    const studentCounts = schoolData.map(school => school.student_count);
+    
+    new Chart(schoolPerformanceCtx, {
+        type: 'bar',
+        data: {
+            labels: schoolNames,
+            datasets: [{
+                label: 'Student Count',
+                data: studentCounts,
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(6, 182, 212, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(245, 158, 11, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(139, 92, 246, 1)',
+                    'rgba(6, 182, 212, 1)',
+                    'rgba(16, 185, 129, 1)',
+                    'rgba(245, 158, 11, 1)'
+                ],
+                borderWidth: 1,
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            indexAxis: 'y', // Make it a horizontal bar chart
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 220, // Increased left padding for long school names (y-axis labels)
+                    right: 10,
+                    top: 10,
+                    bottom: 10
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    },
+                    ticks: {
+                        precision: 0
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10 // Slightly reduced to fit better
+                        },
+                        autoSkip: false,
+                        maxRotation: 0,
+                        minRotation: 0,
+                        padding: 8, // Add padding between ticks and labels
+                        callback: function(value, index, ticks) {
+                            const label = this.getLabelForValue(value);
+                            // Allow full school names to display on y-axis
+                            return label;
+                        }
+                    },
+                }
+            }
+        }
+    });
+    
+    // Age Distribution Chart
+    const ageDistributionCtx = document.getElementById('ageDistributionChart').getContext('2d');
+    const ageData = JSON.parse('{{ age_groups | tojson | safe }}');
+    
+    new Chart(ageDistributionCtx, {
+        type: 'pie',
+        data: {
+            labels: ['5-8 years', '9-12 years', '13-16 years', '17+ years'],
+            datasets: [{
+                data: [
+                    ageData['5-8'],
+                    ageData['9-12'],
+                    ageData['13-16'],
+                    ageData['17+']
+                ],
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(6, 182, 212, 0.8)',
+                    'rgba(16, 185, 129, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(139, 92, 246, 1)',
+                    'rgba(6, 182, 212, 1)',
+                    'rgba(16, 185, 129, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+    
+    // Gender Distribution Chart
+    const genderDistributionCtx = document.getElementById('genderDistributionChart').getContext('2d');
+    const genderData = JSON.parse('{{ gender_distribution | tojson | safe }}');
+    
+    new Chart(genderDistributionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: genderData.map(item => item.gender || 'Unknown'),
+            datasets: [{
+                data: genderData.map(item => item.count),
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(236, 72, 153, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(236, 72, 153, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+    
+    // Risk Trends Chart
+    const riskTrendsCtx = document.getElementById('riskTrendsChart').getContext('2d');
+    
+    new Chart(riskTrendsCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Critical Cases', 'At Risk', 'Healthy'],
+            datasets: [{
+                label: 'Students',
+                data: [
+                    bmiData.severely_underweight + bmiData.obese,
+                    bmiData.underweight + bmiData.overweight,
+                    bmiData.normal
+                ],
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(16, 185, 129, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(239, 68, 68, 1)',
+                    'rgba(245, 158, 11, 1)',
+                    'rgba(16, 185, 129, 1)'
+                ],
+                borderWidth: 1,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+});
+
+// Profile dropdown functionality
+function toggleDropdown(event) {
+    event.stopPropagation();
+    const dropdown = event.currentTarget.closest('.profile-dropdown');
+    dropdown.classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdowns = document.querySelectorAll('.profile-dropdown');
+    dropdowns.forEach(dropdown => {
+        if (!dropdown.contains(event.target)) {
+            dropdown.classList.remove('open');
+        }
+    });
+});
+
+// School filter functionality
+function filterBySchool(schoolId) {
+    const url = new URL(window.location.href);
+    if (schoolId) {
+        url.searchParams.set('school_id', schoolId);
+    } else {
+        url.searchParams.delete('school_id');
+    }
+    window.location.href = url.toString();
+}
+</script>
+{% endblock %}

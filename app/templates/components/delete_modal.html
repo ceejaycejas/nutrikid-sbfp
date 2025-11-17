@@ -1,0 +1,191 @@
+<!-- Modern Delete Confirmation Modal -->
+<style>
+.delete-modal .modal-dialog {
+    max-width: 450px;
+    margin: 1.75rem auto;
+}
+
+.delete-modal .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.delete-modal .modal-header {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    border: none;
+    padding: 1.5rem 2rem;
+    position: relative;
+}
+
+.delete-modal .modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.9), rgba(238, 90, 36, 0.9));
+    z-index: 1;
+}
+
+.delete-modal .modal-header * {
+    position: relative;
+    z-index: 2;
+}
+
+.delete-modal .modal-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.delete-modal .btn-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    opacity: 0.8;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.delete-modal .btn-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.delete-modal .modal-body {
+    padding: 2rem;
+    text-align: left;
+}
+
+.delete-modal .delete-question {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.delete-modal .delete-warning {
+    color: #718096;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+.delete-modal .modal-footer {
+    border: none;
+    padding: 1.5rem 2rem 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.delete-modal .btn-cancel {
+    background: #6c757d;
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.delete-modal .btn-cancel:hover {
+    background: #5a6268;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.delete-modal .btn-delete-confirm {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.delete-modal .btn-delete-confirm:hover {
+    background: linear-gradient(135deg, #ee5a24, #c44569);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+/* Animation - Disabled to prevent flickering */
+.delete-modal.fade .modal-dialog {
+    transform: none !important;
+    transition: none !important;
+}
+
+.delete-modal.show .modal-dialog {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Remove all transitions and animations from delete modal */
+.delete-modal,
+.delete-modal *,
+.delete-modal *::before,
+.delete-modal *::after {
+    animation: none !important;
+    transition: none !important;
+}
+</style>
+
+<div class="modal delete-modal" id="{{ modal_id }}" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-question">
+                    Are you sure you want to delete {{ item_name }}?
+                </div>
+                <div class="delete-warning">
+                    This action cannot be undone and will permanently remove all associated data.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <form action="{{ delete_url }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn-delete-confirm">
+                        <i class="bi bi-trash"></i> Delete {{ item_type }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

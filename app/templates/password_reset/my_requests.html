@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}My Password Reset Requests - NutriKid{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="bi bi-key"></i> My Password Reset Requests
+                </h2>
+                <a href="{{ url_for('password_reset.request_reset') }}" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> New Request
+                </a>
+            </div>
+
+            {% if requests %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Request History
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Request ID</th>
+                                    <th>Status</th>
+                                    <th>Reason</th>
+                                    <th>Requested</th>
+                                    <th>Expires/Processed</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in requests %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ req.id }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ req.get_status_badge_class() }}">
+                                            {{ req.get_display_status() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if req.reason %}
+                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" 
+                                                  title="{{ req.reason }}">
+                                                {{ req.reason }}
+                                            </span>
+                                        {% else %}
+                                            <em class="text-muted">No reason provided</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ req.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        {% if req.status == 'pending' %}
+                                            <small class="{% if req.is_expired() %}text-danger{% else %}text-muted{% endif %}">
+                                                Expires: {{ req.expires_at.strftime('%Y-%m-%d %H:%M') }}
+                                            </small>
+                                        {% elif req.approved_at %}
+                                            <small>{{ req.approved_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if req.admin_notes %}
+                                            <button type="button" class="btn btn-sm btn-outline-info" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#notesModal{{ req.id }}">
+                                                <i class="bi bi-sticky"></i> View Notes
+                                            </button>
+                                        {% else %}
+                                            <small class="text-muted">No notes</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- Notes Modal -->
+                                {% if req.admin_notes %}
+                                <div class="modal fade" id="notesModal{{ req.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Admin Notes - Request #{{ req.id }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="alert alert-info">
+                                                    <h6>
+                                                        {% if req.status == 'approved' %}
+                                                            <i class="bi bi-check-circle"></i> Request Approved
+                                                        {% elif req.status == 'rejected' %}
+                                                            <i class="bi bi-x-circle"></i> Request Rejected
+                                                        {% endif %}
+                                                    </h6>
+                                                    <p class="mb-0">{{ req.admin_notes }}</p>
+                                                </div>
+                                                
+                                                {% if req.approved_by %}
+                                                <p class="text-muted mb-0">
+                                                    <small>
+                                                        Processed by: {{ req.approved_by.name }} 
+                                                        on {{ req.approved_at.strftime('%Y-%m-%d %H:%M') }}
+                                                    </small>
+                                                </p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Legend -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Status Legend
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><span class="badge bg-warning">Pending</span> - Waiting for admin approval</li>
+                                <li><span class="badge bg-success">Approved</span> - New password sent to email</li>
+                                <li><span class="badge bg-danger">Rejected</span> - Request was denied</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><span class="badge bg-info">Completed</span> - Password successfully reset</li>
+                                <li><span class="badge bg-secondary">Expired</span> - Request expired without action</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-key display-1 text-muted"></i>
+                    <h4 class="mt-3">No Password Reset Requests</h4>
+                    <p class="text-muted">You haven't submitted any password reset requests yet.</p>
+                    <a href="{{ url_for('password_reset.request_reset') }}" class="btn btn-primary">
+                        <i class="bi bi-plus"></i> Submit New Request
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Information Card -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle"></i> How Password Reset Works
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>For Students:</h6>
+                            <ol>
+                                <li>Submit a password reset request</li>
+                                <li>Your school administrator reviews the request</li>
+                                <li>If approved, you'll receive a new temporary password via email</li>
+                                <li>Log in with the temporary password and change it immediately</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>For Administrators:</h6>
+                            <ol>
+                                <li>Submit a password reset request</li>
+                                <li>The super administrator reviews the request</li>
+                                <li>If approved, you'll receive a new temporary password via email</li>
+                                <li>Log in with the temporary password and change it immediately</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <strong>Important:</strong> Password reset requests expire after 24 hours. 
+                        If your request expires, you'll need to submit a new one.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

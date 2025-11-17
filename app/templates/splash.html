@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NutriKid</title>
+    <style>
+        body {
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .logo-container {
+            animation: beat 1s infinite;
+            transition: opacity 1s;
+        }
+        .fade-out {
+            opacity: 0;
+        }
+        @keyframes beat {
+            0%, 100% { transform: scale(1); }
+            20% { transform: scale(1.1); }
+            40% { transform: scale(0.95); }
+            60% { transform: scale(1.08); }
+            80% { transform: scale(0.97); }
+        }
+        img {
+            width: 250px;
+            height: 250px;
+            object-fit: contain;
+        }
+    </style>
+    <script>
+        setTimeout(function() {
+            document.querySelector('.logo-container').classList.add('fade-out');
+            setTimeout(function() {
+                window.location.href = "{{ url_for('auth.login') }}";
+            }, 1000); // Wait for fade-out before redirect
+        }, 2000); // Show splash for 3 seconds, then fade out
+    </script>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='img/nutrikid-logo.png') }}" alt="Remedios N. Saplala Elementary School Logo">
+    </div>
+</body>
+</html> 

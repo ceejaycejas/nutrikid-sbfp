@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .notifications-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+    }
+    
+    .notification-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border-left: 4px solid #e9ecef;
+    }
+    
+    .notification-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    
+    .notification-card.unread {
+        border-left-color: #007bff;
+        background: linear-gradient(135deg, rgba(0, 123, 255, 0.02), rgba(0, 123, 255, 0.05));
+    }
+    
+    .notification-card.priority-high {
+        border-left-color: #dc3545;
+    }
+    
+    .notification-card.priority-urgent {
+        border-left-color: #fd7e14;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+        50% { box-shadow: 0 4px 16px rgba(253, 126, 20, 0.3); }
+        100% { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    }
+    
+    .notification-content {
+        padding: 1.5rem;
+    }
+    
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    
+    .notification-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+    
+    .notification-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .notification-time {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .notification-message {
+        color: #495057;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        white-space: pre-line;
+    }
+    
+    .notification-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .priority-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .priority-low { background: #d1ecf1; color: #0c5460; }
+    .priority-medium { background: #fff3cd; color: #856404; }
+    .priority-high { background: #f8d7da; color: #721c24; }
+    .priority-urgent { background: #fd7e14; color: white; }
+    
+    .type-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        background: #e9ecef;
+        color: #495057;
+    }
+    
+    .btn-action {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-action:hover {
+        background: linear-gradient(135deg, #0056b3, #004085);
+        transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-delete {
+        background: none;
+        border: none;
+        color: #dc3545;
+        padding: 0.25rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-delete:hover {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+    
+    .bulk-actions {
+        background: white;
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .pagination-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+        .notification-header {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .notification-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .bulk-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="notifications-header">
+        <h2><i class="bi bi-bell me-2"></i>Notifications</h2>
+        <p class="mb-0">Stay updated with all your account activities and system changes</p>
+    </div>
+    
+    <!-- Bulk Actions -->
+    {% if notifications.items %}
+    <div class="bulk-actions">
+        <span class="fw-bold">Bulk Actions:</span>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="markAllAsRead()">
+            <i class="bi bi-check-all"></i> Mark All as Read
+        </button>
+        <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteAllRead()">
+            <i class="bi bi-trash"></i> Delete Read Notifications
+        </button>
+    </div>
+    {% endif %}
+    
+    <!-- Notifications List -->
+    {% if notifications.items %}
+        {% for notification in notifications.items %}
+        <div class="notification-card {% if not notification.is_read %}unread{% endif %} priority-{{ notification.priority }}" 
+             data-notification-id="{{ notification.id }}">
+            <div class="notification-content">
+                <div class="notification-header">
+                    <div>
+                        <h5 class="notification-title">{{ notification.title }}</h5>
+                        <div class="notification-meta">
+                            <span class="priority-badge priority-{{ notification.priority }}">
+                                {{ notification.priority }}
+                            </span>
+                            <span class="type-badge">{{ notification.notification_type.replace('_', ' ').title() }}</span>
+                            {% if not notification.is_read %}
+                                <span class="badge bg-primary">New</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="notification-time">{{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                        <button type="button" class="btn-delete" data-notification-id="{{ notification.id }}" 
+                                title="Delete notification">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="notification-message">{{ notification.message }}</div>
+                
+                {% if notification.action_url and notification.action_text %}
+                <div class="notification-actions">
+                    <a href="{{ notification.action_url }}" class="btn-action">
+                        <i class="bi bi-arrow-right"></i> {{ notification.action_text }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Pagination -->
+        {% if notifications.pages > 1 %}
+        <div class="pagination-wrapper">
+            <nav aria-label="Notifications pagination">
+                <ul class="pagination">
+                    {% if notifications.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('notifications.index', page=notifications.prev_num) }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in notifications.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != notifications.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('notifications.index', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if notifications.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('notifications.index', page=notifications.next_num) }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-bell-slash"></i>
+            <h3>No Notifications</h3>
+            <p>You don't have any notifications yet. When there are updates to your account or system changes, they'll appear here.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function markAllAsRead() {
+    fetch('/notifications/api/mark-all-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error marking notifications as read');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error marking notifications as read');
+    });
+}
+
+function deleteNotification(notificationId) {
+    if (confirm('Are you sure you want to delete this notification?')) {
+        fetch(`/notifications/api/delete/${notificationId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector(`[data-notification-id="${notificationId}"]`).remove();
+            } else {
+                alert('Error deleting notification');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting notification');
+        });
+    }
+}
+
+function deleteAllRead() {
+    if (confirm('Are you sure you want to delete all read notifications? This action cannot be undone.')) {
+        // Implementation for deleting all read notifications
+        alert('Feature coming soon!');
+    }
+}
+
+// Add event listeners for delete buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('button.btn-delete[data-notification-id]').forEach(button => {
+        button.addEventListener('click', function() {
+            const notificationId = this.getAttribute('data-notification-id');
+            deleteNotification(notificationId);
+        });
+    });
+});
+</script>
+{% endblock %}

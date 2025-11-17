@@ -1,0 +1,15 @@
+<form method="POST" action="{{ url_for('students.add_student') }}">
+    <div class="mb-3">
+        <label for="name" class="form-label">Student Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    <div class="mb-3">
+        <label for="age" class="form-label">Age</label>
+        <input type="number" class="form-control" id="age" name="age" required>
+    </div>
+    <div class="mb-3">
+        <label for="preferences" class="form-label">Preferences / Allergy Info</label>
+        <textarea class="form-control" id="preferences" name="preferences" rows="3" placeholder="Enter preferences or allergy information"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Student</button>
+</form>

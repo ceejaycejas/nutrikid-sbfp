@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password - NutriKid</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .forgot-password-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            min-height: 500px;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .left-panel {
+            flex: 1;
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: white;
+        }
+
+        .right-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .forgot-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .forgot-subtitle {
+            color: #718096;
+            font-size: 1rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+            background: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-send:active {
+            transform: translateY(0);
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        /* Right Panel Decorations */
+        .decoration {
+            position: absolute;
+            opacity: 0.1;
+        }
+
+        .decoration-1 {
+            top: 20%;
+            right: 15%;
+            font-size: 4rem;
+            color: #667eea;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .decoration-2 {
+            bottom: 30%;
+            right: 20%;
+            font-size: 3rem;
+            color: #764ba2;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        .decoration-3 {
+            top: 50%;
+            right: 40%;
+            font-size: 2.5rem;
+            color: #667eea;
+            animation: float 7s ease-in-out infinite;
+        }
+
+        .main-logo {
+            max-width: 200px;
+            width: 100%;
+            height: auto;
+            opacity: 0.8;
+            animation: pulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 10px 30px rgba(102, 126, 234, 0.3));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+
+        /* Alert Styling */
+        .alert {
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            animation: slideInDown 0.5s ease;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .forgot-password-container {
+                flex-direction: column;
+                margin: 10px;
+                border-radius: 16px;
+            }
+
+            .right-panel {
+                min-height: 200px;
+                order: -1;
+            }
+
+            .left-panel {
+                padding: 40px 30px;
+            }
+
+            .forgot-title {
+                font-size: 2rem;
+            }
+
+            .main-logo {
+                max-width: 120px;
+            }
+
+            .decoration-1, .decoration-2, .decoration-3 {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="forgot-password-container">
+        <!-- Left Panel - Form -->
+        <div class="left-panel">
+            <h1 class="forgot-title">Forgot Password</h1>
+            <p class="forgot-subtitle">
+                Enter your e-mail address, and<br>
+                we'll give you reset instruction.
+            </p>
+
+            <!-- Alert Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {% if category == 'danger' %}alert-danger{% elif category == 'success' %}alert-success{% elif category == 'warning' %}alert-warning{% else %}alert-info{% endif %}" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="bi {% if category == 'danger' %}bi-exclamation-triangle{% elif category == 'success' %}bi-check-circle{% elif category == 'warning' %}bi-exclamation-circle{% else %}bi-info-circle{% endif %} me-2"></i>
+                                {{ message }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('password_reset.request_reset') }}">
+                <div class="form-group">
+                    <label for="email" class="form-label">📧 Enter E-mail Address</label>
+                    <input type="email" 
+                           class="form-control" 
+                           id="email" 
+                           name="email" 
+                           placeholder="your.email@example.com"
+                           required>
+                </div>
+
+                <button type="submit" class="btn btn-send">
+                    <i class="bi bi-send me-2"></i>
+                    Send New Password
+                </button>
+            </form>
+
+            <div class="back-link">
+                <a href="{{ url_for('auth.login') }}">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Back to Login
+                </a>
+            </div>
+        </div>
+
+        <!-- Right Panel - Decorative -->
+        <div class="right-panel">
+            <img src="{{ url_for('static', filename='img/LOGO.png') }}" alt="NutriKid Logo" class="main-logo">
+            
+            <!-- Floating Decorations -->
+            <div class="decoration decoration-1">
+                <i class="bi bi-question-circle"></i>
+            </div>
+            <div class="decoration decoration-2">
+                <i class="bi bi-send"></i>
+            </div>
+            <div class="decoration decoration-3">
+                <i class="bi bi-envelope"></i>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,622 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .analytics-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .analytics-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: rotate(45deg);
+    }
+    
+    .analytics-header-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .analytics-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .analytics-header .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+        font-weight: 300;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .chart-container:hover {
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+    
+    .chart-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .chart-header h3 {
+        margin: 0;
+        color: #495057;
+        font-weight: 600;
+        font-size: 1.3rem;
+    }
+    
+    .chart-header .chart-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+    
+    .chart-body {
+        padding: 2rem;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .chart-canvas {
+        width: 100%;
+        height: 350px;
+    }
+    
+    .loading-spinner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        color: #6c757d;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.3em;
+    }
+    
+    .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #f5c6cb;
+        margin: 1rem 0;
+    }
+    
+    @media (max-width: 768px) {
+        .analytics-header h1 {
+            font-size: 2rem;
+        }
+        
+        .chart-body {
+            padding: 1rem;
+        }
+        
+        .chart-canvas {
+            height: 300px;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="analytics-header">
+        <div class="analytics-header-content">
+            <h1><i class="bi bi-graph-up-arrow me-3"></i>System Analytics & Reports</h1>
+            <p class="subtitle">Comprehensive nutrition program insights and performance metrics</p>
+        </div>
+    </div>
+    
+    <!-- Loading States -->
+    <div id="loading-stats" class="stats-grid">
+        <div class="stat-card">
+            <div class="loading-spinner">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart 1: Consolidated Student Nutritional Status Report (Doughnut Chart) -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3><i class="bi bi-pie-chart me-2"></i>Consolidated Student Nutritional Status Report</h3>
+            <p class="chart-description">Distribution of students across different BMI categories with percentage breakdown</p>
+        </div>
+        <div class="chart-body">
+            <div id="loading-nutritional" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+            <canvas id="nutritionalStatusChart" class="chart-canvas" style="display: none;"></canvas>
+        </div>
+        <div id="nutritionalLegend" class="chart-legend" style="display: none;"></div>
+    </div>
+    
+    <!-- Chart 2: School Performance Overview (Bar Chart) -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3><i class="bi bi-bar-chart me-2"></i>School Performance Overview</h3>
+            <p class="chart-description">Comparative performance metrics across schools including beneficiaries served and completion rates</p>
+        </div>
+        <div class="chart-body">
+            <div id="loading-performance" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+            <canvas id="schoolPerformanceChart" class="chart-canvas" style="display: none;"></canvas>
+        </div>
+    </div>
+    
+    <!-- Chart 3: Comparative Progress Report (Line Chart) -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3><i class="bi bi-graph-up me-2"></i>Comparative Progress Report</h3>
+            <p class="chart-description">Monthly progress tracking showing improvements in student nutritional status and program coverage</p>
+        </div>
+        <div class="chart-body">
+            <div id="loading-progress" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+            <canvas id="progressReportChart" class="chart-canvas" style="display: none;"></canvas>
+        </div>
+    </div>
+    
+    <!-- Chart 4: Compliance & Audit Report (Stacked Bar Chart) -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3><i class="bi bi-clipboard-check me-2"></i>Compliance & Audit Report</h3>
+            <p class="chart-description">Record completion status and compliance levels across schools and divisions</p>
+        </div>
+        <div class="chart-body">
+            <div id="loading-compliance" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+            <canvas id="complianceAuditChart" class="chart-canvas" style="display: none;"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+<script>
+// Global chart instances
+let nutritionalStatusChart = null;
+let schoolPerformanceChart = null;
+let progressReportChart = null;
+let complianceAuditChart = null;
+
+// Chart.js default configuration
+Chart.defaults.font.family = "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#6c757d';
+
+// Utility function to show loading
+function showLoading(elementId) {
+    document.getElementById(elementId).style.display = 'flex';
+    document.getElementById(elementId.replace('loading-', '')).style.display = 'none';
+}
+
+// Utility function to hide loading and show chart
+function hideLoading(elementId) {
+    document.getElementById(elementId).style.display = 'none';
+    document.getElementById(elementId.replace('loading-', '')).style.display = 'block';
+}
+
+// Utility function to show error
+function showError(elementId, message) {
+    document.getElementById(elementId).style.display = 'none';
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i>${message}`;
+    document.getElementById(elementId.replace('loading-', '')).parentNode.appendChild(errorDiv);
+}
+
+// Load Nutritional Status Chart (Doughnut)
+async function loadNutritionalStatusChart() {
+    try {
+        showLoading('loading-nutritional');
+        const response = await fetch('/reports/api/nutritional-status');
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load data');
+        }
+        
+        const ctx = document.getElementById('nutritionalStatusChart').getContext('2d');
+        
+        if (nutritionalStatusChart) {
+            nutritionalStatusChart.destroy();
+        }
+        
+        nutritionalStatusChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: result.data.map(item => item.label),
+                datasets: [{
+                    data: result.data.map(item => item.value),
+                    backgroundColor: result.data.map(item => item.color),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // We'll create custom legend
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const item = result.data[context.dataIndex];
+                                return `${item.label}: ${item.value} students (${item.percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+        
+        // Create custom legend
+        const legendContainer = document.getElementById('nutritionalLegend');
+        legendContainer.innerHTML = '';
+        result.data.forEach(item => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+            legendItem.innerHTML = `
+                <div class="legend-color" style="background-color: ${item.color}"></div>
+                <span>${item.label}: ${item.value} (${item.percentage}%)</span>
+            `;
+            legendContainer.appendChild(legendItem);
+        });
+        legendContainer.style.display = 'flex';
+        
+        hideLoading('loading-nutritional');
+        
+    } catch (error) {
+        console.error('Error loading nutritional status chart:', error);
+        showError('loading-nutritional', 'Failed to load nutritional status data');
+    }
+}
+
+// Load School Performance Chart (Bar)
+async function loadSchoolPerformanceChart() {
+    try {
+        showLoading('loading-performance');
+        const response = await fetch('/reports/api/school-performance');
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load data');
+        }
+        
+        const ctx = document.getElementById('schoolPerformanceChart').getContext('2d');
+        
+        if (schoolPerformanceChart) {
+            schoolPerformanceChart.destroy();
+        }
+        
+        schoolPerformanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: result.data.map(item => item.school_name),
+                datasets: [{
+                    label: 'Total Students',
+                    data: result.data.map(item => item.total_students),
+                    backgroundColor: result.data.map(item => item.color),
+                    borderColor: result.data.map(item => item.color),
+                    borderWidth: 1
+                }, {
+                    label: 'Beneficiaries Served',
+                    data: result.data.map(item => item.beneficiaries_served),
+                    backgroundColor: result.data.map(item => item.color + '80'),
+                    borderColor: result.data.map(item => item.color),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                const item = result.data[context.dataIndex];
+                                if (context.datasetIndex === 0) {
+                                    return `Completion Rate: ${item.completion_rate}%`;
+                                }
+                                return '';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        hideLoading('loading-performance');
+        
+    } catch (error) {
+        console.error('Error loading school performance chart:', error);
+        showError('loading-performance', 'Failed to load school performance data');
+    }
+}
+
+// Load Progress Report Chart (Line)
+async function loadProgressReportChart() {
+    try {
+        showLoading('loading-progress');
+        const response = await fetch('/reports/api/progress-report');
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load data');
+        }
+        
+        const ctx = document.getElementById('progressReportChart').getContext('2d');
+        
+        if (progressReportChart) {
+            progressReportChart.destroy();
+        }
+        
+        progressReportChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: result.data.map(item => item.month),
+                datasets: [{
+                    label: 'Program Coverage Rate (%)',
+                    data: result.data.map(item => item.coverage_rate),
+                    borderColor: '#007bff',
+                    backgroundColor: '#007bff20',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Healthy Students Rate (%)',
+                    data: result.data.map(item => item.health_rate),
+                    borderColor: '#28a745',
+                    backgroundColor: '#28a74520',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        hideLoading('loading-progress');
+        
+    } catch (error) {
+        console.error('Error loading progress report chart:', error);
+        showError('loading-progress', 'Failed to load progress report data');
+    }
+}
+
+// Load Compliance Audit Chart (Stacked Bar)
+async function loadComplianceAuditChart() {
+    try {
+        showLoading('loading-compliance');
+        const response = await fetch('/reports/api/compliance-audit');
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load data');
+        }
+        
+        const ctx = document.getElementById('complianceAuditChart').getContext('2d');
+        
+        if (complianceAuditChart) {
+            complianceAuditChart.destroy();
+        }
+        
+        complianceAuditChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: result.data.map(item => item.school_name),
+                datasets: [{
+                    label: 'Complete Records (%)',
+                    data: result.data.map(item => item.complete_pct),
+                    backgroundColor: '#28a745',
+                    borderColor: '#28a745',
+                    borderWidth: 1
+                }, {
+                    label: 'Partial Records (%)',
+                    data: result.data.map(item => item.partial_pct),
+                    backgroundColor: '#ffc107',
+                    borderColor: '#ffc107',
+                    borderWidth: 1
+                }, {
+                    label: 'Incomplete Records (%)',
+                    data: result.data.map(item => item.incomplete_pct),
+                    backgroundColor: '#dc3545',
+                    borderColor: '#dc3545',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        hideLoading('loading-compliance');
+        
+    } catch (error) {
+        console.error('Error loading compliance audit chart:', error);
+        showError('loading-compliance', 'Failed to load compliance audit data');
+    }
+}
+
+// Load all charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Load all charts with a small delay to prevent overwhelming the server
+    setTimeout(() => {
+        loadNutritionalStatusChart();
+    }, 100);
+    
+    setTimeout(() => {
+        loadSchoolPerformanceChart();
+    }, 300);
+    
+    setTimeout(() => {
+        loadProgressReportChart();
+    }, 500);
+    
+    setTimeout(() => {
+        loadComplianceAuditChart();
+    }, 700);
+    
+    // Hide loading stats
+    setTimeout(() => {
+        document.getElementById('loading-stats').style.display = 'none';
+    }, 1000);
+});
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    if (nutritionalStatusChart) nutritionalStatusChart.resize();
+    if (schoolPerformanceChart) schoolPerformanceChart.resize();
+    if (progressReportChart) progressReportChart.resize();
+    if (complianceAuditChart) complianceAuditChart.resize();
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,483 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+/* Clean modern design matching the reference */
+.edit-student-page {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    padding: 0;
+}
+
+.form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.form-header {
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.2);
+}
+
+.form-header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.form-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.form-content {
+    background: white;
+    border-radius: 0 0 12px 12px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-top: 3px solid #17a2b8;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.form-label .required {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.form-label i {
+    color: #17a2b8;
+    font-size: 1rem;
+}
+
+.form-control {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: #fff;
+    width: 100%;
+}
+
+.form-control:focus {
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.1);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+.btn-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #138496 0%, #1e7e34 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    color: white;
+}
+
+.back-link {
+    color: white;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.back-link:hover {
+    opacity: 1;
+    color: white;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 1rem;
+    }
+    
+    .form-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .form-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .form-content {
+        padding: 1.5rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .btn-group {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        justify-content: center;
+    }
+}
+
+/* Form validation styles */
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+}
+
+.invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+}
+
+.valid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #28a745;
+}
+</style>
+
+<div class="edit-student-page">
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <div style="flex: 1;">
+                <a href="{{ url_for('student.view', student_id=student.id, from=referrer) if referrer else url_for('student.view', student_id=student.id) }}" class="back-link">
+                    <i class="bi bi-arrow-left"></i>
+                    Back
+                </a>
+                <h1>
+                    <i class="bi bi-person-gear"></i>
+                    Edit Student Information
+                </h1>
+                <p>Update student details and information</p>
+            </div>
+        </div>
+
+        <!-- Form Content -->
+        <div class="form-content">
+            <form method="POST" id="editStudentForm" novalidate>
+                <div class="form-grid">
+                    <!-- Name -->
+                    <div class="form-group">
+                        <label for="name" class="form-label">
+                            <i class="bi bi-person"></i>
+                            Name <span class="required">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="name" 
+                               name="name" 
+                               value="{{ student.name }}" 
+                               placeholder="Enter student name"
+                               required>
+                        <div class="invalid-feedback" id="name-error">Please enter a valid name.</div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="email" class="form-label">
+                            <i class="bi bi-envelope"></i>
+                            Email <span class="required">*</span>
+                        </label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="email" 
+                               name="email" 
+                               value="{{ student.user.email if student.user else '' }}" 
+                               placeholder="Enter email address"
+                               required>
+                        <div class="invalid-feedback" id="email-error">Please enter a valid email address.</div>
+                    </div>
+
+                    <!-- Birth Date -->
+                    <div class="form-group">
+                        <label for="birth_date" class="form-label">
+                            <i class="bi bi-calendar"></i>
+                            Birth Date
+                        </label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="birth_date" 
+                               name="birth_date" 
+                               value="{{ student.birth_date.strftime('%Y-%m-%d') if student.birth_date else '' }}"
+                               placeholder="dd/mm/yyyy"
+                               required>
+                        <div class="invalid-feedback" id="birth_date-error">Please select a valid birth date.</div>
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="form-group">
+                        <label for="gender" class="form-label">
+                            <i class="bi bi-gender-ambiguous"></i>
+                            Gender
+                        </label>
+                        <select class="form-control form-select" 
+                                id="gender" 
+                                name="gender" 
+                                required>
+                            <option value="">Select Gender</option>
+                            <option value="Male" {% if student.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if student.gender == 'Female' %}selected{% endif %}>Female</option>
+                        </select>
+                        <div class="invalid-feedback" id="gender-error">Please select a gender.</div>
+                    </div>
+
+                    <!-- Height -->
+                    <div class="form-group">
+                        <label for="height" class="form-label">
+                            <i class="bi bi-rulers"></i>
+                            Height (cm)
+                        </label>
+                        <input type="number" 
+                               step="0.1" 
+                               class="form-control" 
+                               id="height" 
+                               name="height" 
+                               value="{{ student.height }}" 
+                               placeholder="Enter height in cm"
+                               min="50"
+                               max="250"
+                               required>
+                        <div class="invalid-feedback" id="height-error">Please enter a valid height (50-250 cm).</div>
+                    </div>
+
+                    <!-- Weight -->
+                    <div class="form-group">
+                        <label for="weight" class="form-label">
+                            <i class="bi bi-speedometer"></i>
+                            Weight (kg)
+                        </label>
+                        <input type="number" 
+                               step="0.1" 
+                               class="form-control" 
+                               id="weight" 
+                               name="weight" 
+                               value="{{ student.weight }}" 
+                               placeholder="Enter weight in kg"
+                               min="10"
+                               max="200"
+                               required>
+                        <div class="invalid-feedback" id="weight-error">Please enter a valid weight (10-200 kg).</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-group">
+                    <a href="{{ url_for('student.view', student_id=student.id, from=referrer) if referrer else url_for('student.view', student_id=student.id) }}" class="btn-secondary">
+                        <i class="bi bi-x-circle"></i>
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn-primary" id="saveBtn">
+                        <i class="bi bi-check-circle"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editStudentForm');
+    const saveBtn = document.getElementById('saveBtn');
+    
+    // Validation functions
+    const validators = {
+        name: (value) => value.trim().length >= 2,
+        email: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+        birth_date: (value) => {
+            if (!value) return false;
+            const date = new Date(value);
+            const now = new Date();
+            const age = (now - date) / (365.25 * 24 * 60 * 60 * 1000);
+            return age >= 3 && age <= 25;
+        },
+        gender: (value) => ['Male', 'Female'].includes(value),
+        height: (value) => {
+            const num = parseFloat(value);
+            return !isNaN(num) && num >= 50 && num <= 250;
+        },
+        weight: (value) => {
+            const num = parseFloat(value);
+            return !isNaN(num) && num >= 10 && num <= 200;
+        }
+    };
+    
+    // Validate field function
+    function validateField(field, validationFn) {
+        const isValid = validationFn(field.value);
+        const errorDiv = document.getElementById(field.id + '-error');
+        
+        if (isValid) {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            if (errorDiv) errorDiv.style.display = 'none';
+        } else {
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
+            if (errorDiv) errorDiv.style.display = 'block';
+        }
+        
+        return isValid;
+    }
+    
+    // Add real-time validation
+    Object.keys(validators).forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (field) {
+            field.addEventListener('blur', () => {
+                validateField(field, validators[fieldName]);
+            });
+            
+            field.addEventListener('input', () => {
+                if (field.classList.contains('is-invalid')) {
+                    validateField(field, validators[fieldName]);
+                }
+            });
+        }
+    });
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let isFormValid = true;
+        
+        // Validate all fields
+        Object.keys(validators).forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            if (field) {
+                const isValid = validateField(field, validators[fieldName]);
+                if (!isValid) isFormValid = false;
+            }
+        });
+        
+        if (isFormValid) {
+            // Add loading state
+            saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+            saveBtn.disabled = true;
+            
+            // Submit form
+            form.submit();
+        } else {
+            // Scroll to first error
+            const firstError = form.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

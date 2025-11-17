@@ -1,0 +1,706 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 16px rgba(79, 172, 254, 0.3);
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0.5rem 0 0 0;
+    }
+    
+    .back-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .main-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .form-section {
+        padding: 2rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-row:last-child {
+        margin-bottom: 0;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-value {
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: #2d3748;
+        font-weight: 500;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .bmi-analysis {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .bmi-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .bmi-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .bmi-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin: 0;
+    }
+    
+    .bmi-status {
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .bmi-underweight {
+        background: #fef5e7;
+        color: #744210;
+        border: 1px solid #f6e05e;
+    }
+    
+    .bmi-normal {
+        background: #f0fff4;
+        color: #22543d;
+        border: 1px solid #68d391;
+    }
+    
+    .bmi-overweight {
+        background: #fed7d7;
+        color: #742a2a;
+        border: 1px solid #fc8181;
+    }
+    
+    .bmi-obese {
+        background: #fed7d7;
+        color: #742a2a;
+        border: 1px solid #e53e3e;
+    }
+    
+    .bmi-unknown {
+        background: #f7fafc;
+        color: #4a5568;
+        border: 1px solid #cbd5e0;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding: 1.5rem 2rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .btn-edit {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-edit:hover {
+        background: linear-gradient(135deg, #00f2fe, #4facfe);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    
+    .btn-delete {
+        background: #6c757d;
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-delete:hover {
+        background: #5a6268;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .credentials-section {
+        background: #f8f9ff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .credentials-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #4facfe;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-reset {
+        background: #ffc107;
+        border: none;
+        color: #212529;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+    
+    .btn-reset:hover {
+        background: #e0a800;
+        color: #212529;
+        transform: translateY(-1px);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                {% if referrer == 'beneficiary' %}
+                    <a href="{{ url_for('beneficiary.index') }}" class="back-btn">
+                        <i class="bi bi-arrow-left"></i> Back to Beneficiaries
+                    </a>
+                {% elif current_user.role == 'super_admin' %}
+                    <a href="{{ url_for('super_admin.students') }}" class="back-btn">
+                        <i class="bi bi-arrow-left"></i> Back to Students
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('section.students', section_id=student.section_id) }}" class="back-btn">
+                        <i class="bi bi-arrow-left"></i> Back to Section
+                    </a>
+                {% endif %}
+                <h1 class="page-title">
+                    <i class="bi bi-person-circle"></i>
+                    Student Information
+                </h1>
+                <p class="page-subtitle">View detailed student profile and nutritional data</p>
+            </div>
+        </div>
+    </div>
+    <!-- Main Information Card -->
+    <div class="main-card">
+        {% if current_user.role == 'admin' %}
+        <!-- Account Credentials Section -->
+        <div class="form-section">
+            <div class="credentials-section">
+                <div class="credentials-title">
+                    <i class="bi bi-shield-lock"></i> Account Credentials
+                </div>
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-envelope"></i> Email Address
+                    </div>
+                    <div class="form-value">{{ student.user.email if student.user else 'N/A' }}</div>
+                </div>
+                <form action="{{ url_for('student.reset_password', student_id=student.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn-reset">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Reset Password
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Personal Information Section -->
+        <div class="form-section">
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-person"></i> Name *
+                    </div>
+                    <div class="form-value">{{ student.name }}</div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-calendar-event"></i> Birth Date
+                    </div>
+                    <div class="form-value">{{ student.birth_date.strftime('%B %d, %Y') if student.birth_date else 'Not set' }}</div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-hourglass-split"></i> Age
+                    </div>
+                    <div class="form-value">{{ student.age }} years old</div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-gender-ambiguous"></i> Gender
+                    </div>
+                    <div class="form-value">{{ student.gender }}</div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-building"></i> Section
+                    </div>
+                    <div class="form-value">{{ student.section.name if student.section else 'N/A' }}</div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-heart-pulse"></i> Preferences/Allergies
+                    </div>
+                    <div class="form-value">{{ student.preferences if student.preferences else 'None' }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Physical Measurements Section -->
+        <div class="form-section">
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-arrow-up"></i> Height
+                    </div>
+                    <div class="form-value">{{ student.height }} cm</div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-speedometer2"></i> Weight
+                    </div>
+                    <div class="form-value">{{ student.weight }} kg</div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="form-label">
+                        <i class="bi bi-calculator"></i> BMI
+                    </div>
+                    <div class="form-value">{{ "%.2f"|format(student.bmi) if student.bmi else 'N/A' }}</div>
+                </div>
+                <div class="form-group">
+                    <!-- Empty space for alignment -->
+                </div>
+            </div>
+        </div>
+        
+        {% if current_user.role == 'admin' %}
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            {% if referrer == 'beneficiary' %}
+                <a href="{{ url_for('beneficiary.index') }}" class="btn-delete">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            {% elif current_user.role == 'super_admin' %}
+                <a href="{{ url_for('super_admin.students') }}" class="btn-delete">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            {% else %}
+                <a href="{{ url_for('section.students', section_id=student.section_id) }}" class="btn-delete">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            {% endif %}
+            <a href="{{ url_for('student.edit', student_id=student.id, from=referrer) if referrer else url_for('student.edit', student_id=student.id) }}" class="btn-edit">
+                <i class="bi bi-pencil-square"></i> Edit Student
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- BMI Analysis Card -->
+    <div class="bmi-analysis">
+        <div class="bmi-header">
+            <div class="bmi-icon">
+                <i class="bi bi-activity"></i>
+            </div>
+            <h3 class="bmi-title">BMI Analysis</h3>
+        </div>
+        
+        {% if student.bmi is none %}
+            <div class="bmi-status bmi-unknown">
+                <i class="bi bi-question-circle"></i>
+                BMI not calculated - Please update height and weight measurements
+            </div>
+        {% elif student.bmi < 16 %}
+            <div class="bmi-status bmi-obese">
+                <i class="bi bi-exclamation-triangle"></i>
+                Severely Underweight (BMI: {{ "%.2f"|format(student.bmi) }})
+            </div>
+        {% elif student.bmi < 18.5 %}
+            <div class="bmi-status bmi-underweight">
+                <i class="bi bi-dash-circle"></i>
+                Underweight (BMI: {{ "%.2f"|format(student.bmi) }})
+            </div>
+        {% elif student.bmi < 25 %}
+            <div class="bmi-status bmi-normal">
+                <i class="bi bi-check-circle"></i>
+                Normal Weight (BMI: {{ "%.2f"|format(student.bmi) }})
+            </div>
+        {% elif student.bmi < 30 %}
+            <div class="bmi-status bmi-overweight">
+                <i class="bi bi-plus-circle"></i>
+                Overweight (BMI: {{ "%.2f"|format(student.bmi) }})
+            </div>
+        {% else %}
+            <div class="bmi-status bmi-obese">
+                <i class="bi bi-exclamation-triangle"></i>
+                Obese (BMI: {{ "%.2f"|format(student.bmi) }})
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modern Delete Confirmation Modal -->
+{% if current_user.role == 'admin' %}
+<style>
+.delete-modal .modal-dialog {
+    max-width: 450px;
+    margin: 1.75rem auto;
+}
+
+.delete-modal .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.delete-modal .modal-header {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    border: none;
+    padding: 1.5rem 2rem;
+    position: relative;
+}
+
+.delete-modal .modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.9), rgba(238, 90, 36, 0.9));
+    z-index: 1;
+}
+
+.delete-modal .modal-header * {
+    position: relative;
+    z-index: 2;
+}
+
+.delete-modal .modal-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.delete-modal .btn-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    opacity: 0.8;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+.delete-modal .btn-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+.delete-modal .modal-body {
+    padding: 2rem;
+    text-align: left;
+}
+
+.delete-modal .delete-question {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.delete-modal .delete-warning {
+    color: #718096;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+.delete-modal .modal-footer {
+    border: none;
+    padding: 1.5rem 2rem 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.delete-modal .btn-cancel {
+    background: #6c757d;
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.delete-modal .btn-cancel:hover {
+    background: #5a6268;
+    color: white;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+}
+
+.delete-modal .btn-delete-confirm {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.delete-modal .btn-delete-confirm:hover {
+    background: linear-gradient(135deg, #ee5a24, #c44569);
+    color: white;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+}
+
+/* Complete Animation Removal - No Blinking */
+.delete-modal,
+.delete-modal *,
+.delete-modal *::before,
+.delete-modal *::after {
+    animation: none !important;
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.delete-modal .modal-dialog {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.delete-modal.fade .modal-dialog {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.delete-modal.show .modal-dialog {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+/* Override Bootstrap modal animations completely */
+.delete-modal.fade {
+    transition: none !important;
+}
+
+.delete-modal.fade.show {
+    transition: none !important;
+}
+</style>
+
+<div class="modal delete-modal" id="deleteModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-question">
+                    Are you sure you want to delete {{ student.name }}?
+                </div>
+                <div class="delete-warning">
+                    This action cannot be undone and will permanently remove all associated data.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <form action="{{ url_for('student.delete', student_id=student.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn-delete-confirm">
+                        <i class="bi bi-trash"></i> Delete Student
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriKid - School Nutrition Management System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --info-color: #0dcaf0;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-success: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            background: #fff;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* FIXED NAVBAR - STAYS AT TOP - MAXIMUM PRIORITY */
+        nav.navbar.fixed-top#mainNavbar,
+        #mainNavbar.navbar.fixed-top,
+        #mainNavbar,
+        nav#mainNavbar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100vw !important;
+            max-width: 100% !important;
+            z-index: 999999 !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            padding: 1rem 0 !important;
+            margin: 0 !important;
+            transition: all 0.3s ease !important;
+            transform: translateZ(0) !important;
+            will-change: transform !important;
+        }
+        
+        #mainNavbar.scrolled {
+            box-shadow: 0 6px 25px rgba(0,0,0,0.15) !important;
+            padding: 0.8rem 0 !important;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50 !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem;
+        }
+        
+        .navbar-brand img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            padding: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand:hover img {
+            transform: rotate(360deg) scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .nav-link {
+            font-weight: 600;
+            color: #2c3e50 !important;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 1rem;
+        }
+        
+        .nav-link:hover {
+            color: #667eea !important;
+            transform: translateY(-2px);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #667eea;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-link:hover::after {
+            width: 80%;
+        }
+        
+        .btn-primary-custom {
+            background: var(--gradient-primary);
+            border: none;
+            padding: 0.6rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Hero Section - ENSURE PROPER SPACING FROM FIXED NAVBAR */
+        .hero-section {
+            min-height: 100vh;
+            background: var(--gradient-primary);
+            position: relative;
+            overflow: hidden;
+            padding-top: 140px !important;
+            margin-top: 80px !important;
+            display: flex;
+            align-items: center;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out reverse;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(50px, 50px) rotate(180deg); }
+        }
+        
+        /* Logo Animations */
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes rotateLogo {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.4;
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            color: white;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1s ease;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+        
+        .hero-buttons {
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+        
+        .btn-light-custom {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .btn-light-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            color: #667eea;
+        }
+        
+        .btn-outline-light-custom {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-light-custom:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-3px);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Features Section */
+        .features-section {
+            padding: 100px 0;
+            background: #f8f9fa;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 4rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            height: 100%;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--gradient-primary);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-description {
+            color: #6c757d;
+            line-height: 1.8;
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            padding: 100px 0;
+            background: var(--gradient-primary);
+            color: white;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            text-align: center;
+        }
+        
+        .cta-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        
+        .cta-description {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.95;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1a1a2e;
+            color: white;
+            padding: 60px 0 30px;
+        }
+        
+        .footer-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer-link {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            transition: all 0.3s ease;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .social-icon:hover {
+            background: white;
+            color: #1a1a2e;
+            transform: translateY(-5px);
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 3rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* Mobile Menu */
+        @media (max-width: 991px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .cta-title {
+                font-size: 2rem;
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
+        }
+        
+        /* Animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+        
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Page Transition Overlay */
+        .page-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .page-transition-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .transition-content {
+            text-align: center;
+            color: white;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.5s ease 0.3s;
+        }
+        
+        .page-transition-overlay.active .transition-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .transition-logo {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 2rem;
+            animation: logoSpinBig 1s ease-in-out infinite;
+        }
+        
+        @keyframes logoSpinBig {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+        }
+        
+        .transition-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+        
+        .transition-dots {
+            display: inline-block;
+            animation: dotPulse 1.5s infinite;
+        }
+        
+        @keyframes dotPulse {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // FORCE NAVBAR FIXED POSITION IMMEDIATELY
+        document.addEventListener('DOMContentLoaded', function() {
+            const nav = document.getElementById('mainNavbar');
+            if (nav) {
+                nav.style.position = 'fixed';
+                nav.style.top = '0';
+                nav.style.left = '0';
+                nav.style.right = '0';
+                nav.style.width = '100%';
+                nav.style.zIndex = '999999';
+                nav.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
+                nav.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+                console.log('NAVBAR FIXED APPLIED!');
+                
+                // FORCE IT AGAIN on scroll
+                window.addEventListener('scroll', function() {
+                    nav.style.position = 'fixed';
+                    nav.style.top = '0';
+                    nav.style.width = '100%';
+                    
+                    if (window.scrollY > 50) {
+                        nav.classList.add('scrolled');
+                    } else {
+                        nav.classList.remove('scrolled');
+                    }
+                });
+            }
+        });
+    </script>
+    <!-- Page Transition Overlay -->
+    <div class="page-transition-overlay" id="pageTransition">
+        <div class="transition-content">
+            <div class="transition-logo">
+                <img src="{{ url_for('static', filename='img/LOGO1.png') }}" alt="Loading" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div class="transition-text">
+                Loading<span class="transition-dots">...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100vw !important; max-width: 100% !important; z-index: 999999 !important; background: rgba(255, 255, 255, 0.98) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important; backdrop-filter: blur(10px) !important; transform: translateZ(0) !important;">
+    <div class="container">
+        <a class="navbar-brand" href="#home">
+            <img src="{{ url_for('static', filename='img/LOGO1.png') }}" alt="NutriKid Logo">
+            <span>NutriKid</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                <li class="nav-item ms-3">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary-custom">Sign In</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div style="position: fixed; top: 100px; right: 20px; z-index: 9999; max-width: 400px;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                        <strong>{{ message }}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <h1 class="hero-title">
+                            Transform Your School's<br>
+                            <span style="background: linear-gradient(45deg, #fff, #c8e6f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Nutrition Management</span>
+                        </h1>
+                        <p class="hero-subtitle">
+                            NutriKid is the comprehensive platform that helps schools track student nutrition,
+                            manage meal plans, and monitor health metrics with ease and efficiency.
+                        </p>
+                        <div class="hero-buttons">
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-light-custom me-3 mb-3">Get Started</a>
+                            <a href="#features" class="btn btn-outline-light-custom mb-3">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center" style="position: relative; z-index: 2;">
+                        <!-- Animated Logo Circle -->
+                        <div style="position: relative; display: inline-block; animation: floatLogo 6s infinite ease-in-out;">
+                            <div style="
+                                width: 200px;
+                                height: 200px;
+                                background: rgba(255, 255, 255, 0.95);
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+                                position: relative;
+                                overflow: hidden;
+                            ">
+                                <!-- Pulse effect -->
+                                <div style="
+                                    position: absolute;
+                                    width: 100%;
+                                    height: 100%;
+                                    border-radius: 50%;
+                                    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+                                    animation: pulse 3s infinite;
+                                "></div>
+                                
+                                <!-- Logo -->
+                                <img src="{{ url_for('static', filename='img/LOGO1.png') }}" 
+                                     alt="NutriKid Logo" 
+                                     style="
+                                        width: 150px;
+                                        height: 150px;
+                                        object-fit: contain;
+                                        position: relative;
+                                        z-index: 2;
+                                        animation: rotateLogo 20s infinite linear;
+                                        filter: drop-shadow(0 10px 25px rgba(0,0,0,0.1));
+                                     ">
+                            </div>
+                            
+                            <!-- Decorative circles -->
+                            <div style="
+                                position: absolute;
+                                top: -10px;
+                                right: -10px;
+                                width: 40px;
+                                height: 40px;
+                                background: linear-gradient(135deg, #4CAF50, #45a049);
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-size: 2rem;
+                                font-weight: 700;
+                                box-shadow: 0 10px 30px rgba(76, 175, 80, 0.4);
+                                animation: bounce 2s infinite;
+                            ">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-6">
+                    <div class="stat-card animate-on-scroll">
+                        <span class="stat-number" data-target="10000">0</span>+
+                        <div class="stat-label">Students Served</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card animate-on-scroll">
+                        <span class="stat-number" data-target="500">0</span>+
+                        <div class="stat-label">Schools</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card animate-on-scroll">
+                        <span class="stat-number" data-target="98">0</span>%
+                        <div class="stat-label">Satisfaction Rate</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card animate-on-scroll">
+                        <span class="stat-number" data-target="247">0</span>
+                        <div class="stat-label">24/7 Support</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <h2 class="section-title animate-on-scroll">Powerful Features for Modern Schools</h2>
+            <p class="section-subtitle animate-on-scroll">
+                Everything you need to manage student nutrition, health tracking, and meal planning in one comprehensive platform.
+            </p>
+            
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="bi bi-person-check"></i>
+                        </div>
+                        <h3 class="feature-title">Student Management</h3>
+                        <p class="feature-description">
+                            Complete student profiles with health metrics, BMI tracking, and nutritional needs.
+                            Easily manage and monitor individual student progress.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3 class="feature-title">Analytics & Reports</h3>
+                        <p class="feature-description">
+                            Comprehensive dashboard with real-time insights, health trends, and exportable reports
+                            for administrators and parents.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="bi bi-apple"></i>
+                        </div>
+                        <h3 class="feature-title">Meal Planning</h3>
+                        <p class="feature-description">
+                            Create and manage nutritious meal plans tailored to student needs. Track dietary
+                            requirements and allergies seamlessly.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <h3 class="feature-title">Health Monitoring</h3>
+                        <p class="feature-description">
+                            Track BMI, weight, height, and other vital health metrics. Identify at-risk students
+                            and provide early intervention.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="bi bi-bell"></i>
+                        </div>
+                        <h3 class="feature-title">Smart Notifications</h3>
+                        <p class="feature-description">
+                            Real-time alerts for important updates, health concerns, and system notifications
+                            to keep everyone informed.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3 class="feature-title">Secure & Reliable</h3>
+                        <p class="feature-description">
+                            Bank-level security with role-based access control. Your data is protected with
+                            industry-standard encryption.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" style="padding: 100px 0; background: white;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <div class="animate-on-scroll">
+                        <h2 class="section-title text-start mb-4">Why Choose NutriKid?</h2>
+                        <p style="font-size: 1.1rem; color: #6c757d; margin-bottom: 2rem; line-height: 1.8;">
+                            We understand the challenges schools face in managing student nutrition and health.
+                            That's why we've created a comprehensive solution that simplifies every aspect of
+                            nutrition management.
+                        </p>
+                        <div class="mb-4">
+                            <div class="d-flex align-items-start mb-3">
+                                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #4CAF50, #45a049); 
+                                           border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+                                           color: white; font-size: 1.5rem; flex-shrink: 0;">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h5 style="font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">Easy to Use</h5>
+                                    <p style="color: #6c757d; margin: 0;">Intuitive interface designed for administrators, teachers, and staff.</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-3">
+                                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #4CAF50, #45a049); 
+                                           border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+                                           color: white; font-size: 1.5rem; flex-shrink: 0;">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h5 style="font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">Comprehensive</h5>
+                                    <p style="color: #6c757d; margin: 0;">All-in-one platform for nutrition, health tracking, and reporting.</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #4CAF50, #45a049); 
+                                           border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+                                           color: white; font-size: 1.5rem; flex-shrink: 0;">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h5 style="font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">Always Supported</h5>
+                                    <p style="color: #6c757d; margin: 0;">24/7 customer support and regular system updates.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center animate-on-scroll">
+                        <div style="
+                            background: var(--gradient-primary); 
+                            border-radius: 30px; 
+                            
+                            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+                            position: relative;
+                            overflow: hidden;
+                        ">
+                            <!-- Floating circles background -->
+                            <div style="
+                                position: absolute;
+                                top: -20%;
+                                right: -10%;
+                                width: 200px;
+                                height: 200px;
+                                background: rgba(255, 255, 255, 0.1);
+                                border-radius: 50%;
+                                animation: float 8s infinite ease-in-out;
+                            "></div>
+                            <div style="
+                                position: absolute;
+                                bottom: -15%;
+                                left: -5%;
+                                width: 150px;
+                                height: 150px;
+                                background: rgba(255, 255, 255, 0.08);
+                                border-radius: 50%;
+                                animation: float 6s infinite ease-in-out reverse;
+                            "></div>
+                            
+                            <!-- White circle with logo -->
+                            <div style="
+                                width: 250px;
+                                height: 250px;
+                                background: white;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin: 0 auto;
+                                position: relative;
+                                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+                                animation: floatLogo 5s infinite ease-in-out;
+                            ">
+                                <!-- Inner pulse effect -->
+                               
+                                
+                                <!-- Logo -->
+                                <img src="{{ url_for('static', filename='img/LOGO1.png') }}" 
+                                     alt="About NutriKid" 
+                                     style="
+                                        width: 200px;
+                                        height: 200px;
+                                        object-fit: contain;
+                                        position: relative;
+                                        z-index: 2;
+                                        filter: drop-shadow(0 5px 15px rgba(102, 126, 234, 0.2));
+                                     ">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section animate-on-scroll">
+        <div class="container">
+            <h2 class="cta-title">Ready to Transform Your School?</h2>
+            <p class="cta-description">
+                Join hundreds of schools already using NutriKid to improve student nutrition and health management.
+            </p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-light-custom" style="font-size: 1.2rem; padding: 1rem 3rem;">
+                Get Started Today
+            </a>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" style="padding: 100px 0; background: #f8f9fa;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <h2 class="section-title text-start mb-4 animate-on-scroll">Get in Touch</h2>
+                    <p style="font-size: 1.1rem; color: #6c757d; margin-bottom: 2rem;" class="animate-on-scroll">
+                        Have questions? We're here to help. Contact us for more information about NutriKid.
+                    </p>
+                    <div class="animate-on-scroll">
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center">
+                                <div style="width: 50px; height: 50px; background: var(--gradient-primary); border-radius: 50%; 
+                                           display: flex; align-items: center; justify-content: center; color: white; font-size: 1.3rem;">
+                                    <i class="bi bi-geo-alt"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 style="font-weight: 600; margin: 0;">Address</h6>
+                                    <p style="color: #6c757d; margin: 0;">Davao del Sur, Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center">
+                                <div style="width: 50px; height: 50px; background: var(--gradient-primary); border-radius: 50%; 
+                                           display: flex; align-items: center; justify-content: center; color: white; font-size: 1.3rem;">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 style="font-weight: 600; margin: 0;">Email</h6>
+                                    <p style="color: #6c757d; margin: 0;">cejasceejay2004@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center">
+                                <div style="width: 50px; height: 50px; background: var(--gradient-primary); border-radius: 50%; 
+                                           display: flex; align-items: center; justify-content: center; color: white; font-size: 1.3rem;">
+                                    <i class="bi bi-telephone"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 style="font-weight: 600; margin: 0;">Phone</h6>
+                                    <p style="color: #6c757d; margin: 0;">+63 90 6778 0146</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div style="background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 40px rgba(0,0,0,0.1);" 
+                         class="animate-on-scroll">
+                        <h4 style="font-weight: 600; margin-bottom: 1.5rem;">Send us a Message</h4>
+                        <form>
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Your Name" 
+                                       style="border: 2px solid #e9ecef; border-radius: 10px; padding: 0.8rem;" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="email" class="form-control" placeholder="Your Email" 
+                                       style="border: 2px solid #e9ecef; border-radius: 10px; padding: 0.8rem;" required>
+                            </div>
+                            <div class="mb-3">
+                                <textarea class="form-control" rows="5" placeholder="Your Message" 
+                                         style="border: 2px solid #e9ecef; border-radius: 10px; padding: 0.8rem;" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary-custom w-100" 
+                                    style="padding: 0.8rem; font-size: 1.1rem;">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('static', filename='img/LOGO1.png') }}" alt="NutriKid Logo" 
+                             style="width: 40px; height: 40px; filter: brightness(0) invert(1);">
+                        <h4 style="margin: 0; margin-left: 0.75rem; font-weight: 700; font-size: 1.5rem;">NutriKid</h4>
+                    </div>
+                    <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">
+                        Empowering schools with comprehensive nutrition and health management solutions.
+                    </p>
+                    <div>
+                        <a href="#" class="social-icon"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="social-icon"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="social-icon"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+                    <h5 class="footer-title">Quick Links</h5>
+                    <a href="#home" class="footer-link">Home</a>
+                    <a href="#features" class="footer-link">Features</a>
+                    <a href="#about" class="footer-link">About</a>
+                    <a href="#contact" class="footer-link">Contact</a>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+                    <h5 class="footer-title">Resources</h5>
+                    <a href="{{ url_for('auth.login') }}" class="footer-link">Login</a>
+                    <a href="#" class="footer-link">Support</a>
+                    <a href="#" class="footer-link">Documentation</a>
+                    <a href="#" class="footer-link">FAQs</a>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="footer-title">Newsletter</h5>
+                    <p style="color: rgba(255,255,255,0.7); margin-bottom: 1rem;">
+                        Subscribe to get the latest updates and news.
+                    </p>
+                    <form class="d-flex gap-2">
+                        <input type="email" class="form-control" placeholder="Your email" 
+                               style="border-radius: 50px; border: none; padding: 0.6rem 1.2rem;" required>
+                        <button type="submit" class="btn btn-primary-custom" style="border-radius: 50px; padding: 0.6rem 1.5rem;">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p style="margin: 0;">&copy; 2025 NutriKid. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Navbar scroll effect - TARGET BY ID
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('mainNavbar');
+            if (navbar) {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Counter animation
+        function animateCounter(element) {
+            const target = parseInt(element.getAttribute('data-target'));
+            const duration = 2000;
+            const increment = target / (duration / 16);
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 16);
+        }
+        
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animated');
+                    
+                    // Animate counters
+                    const counters = entry.target.querySelectorAll('.stat-number[data-target]');
+                    counters.forEach(counter => {
+                        if (!counter.classList.contains('counted')) {
+                            animateCounter(counter);
+                            counter.classList.add('counted');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all animate-on-scroll elements
+        document.querySelectorAll('.animate-on-scroll').forEach(element => {
+            observer.observe(element);
+        });
+        
+        // Page Transition Animation for Sign In buttons
+        function animatePageTransition(url) {
+            const overlay = document.getElementById('pageTransition');
+            
+            // Show overlay with animation
+            overlay.classList.add('active');
+            
+            // Navigate after animation
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1000);
+        }
+        
+        // Attach to all Sign In buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all Sign In links
+            const signInButtons = document.querySelectorAll('a[href*="login"], .btn-primary-custom[href*="login"]');
+            
+            signInButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('href');
+                    animatePageTransition(url);
+                });
+            });
+        });
+        
+        // Page load animation (reverse of exit)
+        window.addEventListener('load', function() {
+            // Do nothing - removed to prevent hiding content
+        });
+    </script>
+</body>
+</html>

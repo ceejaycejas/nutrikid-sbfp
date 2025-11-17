@@ -1,0 +1,972 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Modern Page Layout */
+    .beneficiary-page {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .page-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+    
+    /* Enhanced Header Design - Reduced Size */
+    .beneficiary-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+    
+    .beneficiary-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .beneficiary-header::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        animation: float 8s ease-in-out infinite reverse;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    
+    .header-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .header-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .header-text h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        background: linear-gradient(45deg, #ffffff, #e8f4fd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .header-text .subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+        font-weight: 400;
+    }
+    
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .action-btn-header {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    .action-btn-header:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Enhanced Stats Dashboard */
+    .stats-dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    .stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.3rem;
+    }
+    
+    .stat-trend {
+        font-size: 0.8rem;
+        color: #28a745;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #2c3e50;
+        margin: 0.5rem 0;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Modern Search Section */
+    .controls-section {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    
+    .controls-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+    
+    .controls-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .search-filters {
+        display: grid;
+        grid-template-columns: 1fr; /* full-width search */
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .search-box {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 1rem 1.2rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .search-box:focus-within {
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .search-box input {
+        border: none;
+        outline: none;
+        background: transparent;
+        width: 100%;
+        margin-left: 0.8rem;
+        font-size: 1rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+    
+    .search-box input::placeholder {
+        color: #95a5a6;
+        font-weight: 400;
+    }
+    
+    .search-box i {
+        color: #667eea;
+        font-size: 1.2rem;
+    }
+    
+    /* filters removed */
+    
+    /* filters removed */
+    
+    /* apply filters button removed */
+    
+    /* button hover removed */
+    
+    /* Enhanced Beneficiary Table */
+    .beneficiary-table-container {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    
+    .table-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .table-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .table-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .table-action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .table-action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    
+    /* Modern Table Styling */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    /* Fade-in animation like Manage Level/Section */
+    .modern-table tbody tr {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s ease forwards;
+    }
+    .modern-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+    .modern-table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+    .modern-table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+    .modern-table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+    .modern-table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+    @keyframes fadeInUp {
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .modern-table thead th {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        color: #2c3e50;
+        font-weight: 600;
+        padding: 1.2rem 1.5rem;
+        text-align: left;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e9ecef;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .modern-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f3f4;
+    }
+    
+    .modern-table tbody tr:hover {
+        background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+        transform: scale(1.01);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+    }
+    
+    .modern-table tbody td {
+        padding: 1.5rem;
+        vertical-align: middle;
+        border: none;
+    }
+    
+    /* Beneficiary Avatar Styling */
+    .beneficiary-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 15px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-right: 1rem;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .beneficiary-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .beneficiary-details h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1rem;
+    }
+    
+    .beneficiary-details .text-muted {
+        font-size: 0.85rem;
+        color: #7f8c8d !important;
+        margin-top: 0.2rem;
+    }
+    
+    /* Status Badges */
+    .status-badge {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-active {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .status-inactive {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        border: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        text-decoration: none;
+    }
+    
+    .btn-edit {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+    }
+    
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+    }
+    
+    .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .beneficiary-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #10ac84, #00d2d3);
+    }
+    
+    .table {
+        margin: 0;
+        border-radius: 0;
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #10ac84, #00d2d3);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 1.2rem 1rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(16, 172, 132, 0.05), rgba(0, 210, 211, 0.05));
+        transform: translateX(4px);
+    }
+    
+    .student-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .student-avatar {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #10ac84, #00d2d3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .student-details h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .student-details small {
+        color: #7f8c8d;
+    }
+    
+    .bmi-status {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-underweight {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+    }
+    
+    .status-overweight {
+        background: linear-gradient(135deg, #fd7e14, #e55a4e);
+        color: white;
+    }
+    
+    .status-obese {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+    }
+    
+    .status-normal {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        color: white;
+    }
+    
+    .status-no-bmi {
+        background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        color: white;
+    }
+    
+    .gender-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .gender-male {
+        background: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .gender-female {
+        background: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .btn-view {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-view:hover {
+        background: linear-gradient(135deg, #00f2fe, #4facfe);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-remove {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-remove:hover {
+        background: linear-gradient(135deg, #ee5a24, #c44569);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        color: white;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .empty-state {
+        background: white;
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        text-align: center;
+        color: #7f8c8d;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #bdc3c7;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #34495e;
+    }
+    
+    .empty-state p {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state ul {
+        text-align: left;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .beneficiary-header {
+            padding: 0.75rem 1rem;
+            min-height: 50px;
+        }
+        
+        .beneficiary-header h2 {
+            font-size: 1.25rem;
+        }
+        
+        .beneficiary-header .subtitle {
+            font-size: 0.8rem;
+        }
+        
+        .stats-bar {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .stats-left {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-add-beneficiary,
+        .total-badge {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .student-info {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .btn-group {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<div class="beneficiary-page">
+    <div class="page-container">
+        <!-- Enhanced Header Section -->
+        <div class="beneficiary-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-icon">
+                        <i class="bi bi-heart-pulse"></i>
+                    </div>
+                    <div class="header-text">
+                        <h1>Manage Beneficiaries</h1>
+                        <p class="subtitle">Monitor and manage students who need nutritional support</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="{{ url_for('beneficiary.select_students') }}" class="action-btn-header">
+                        <i class="bi bi-person-plus"></i>
+                        Add Beneficiary
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Modern Search Section -->
+        <div class="controls-section">
+            <div class="controls-header">
+                <div class="controls-title">
+                    <i class="bi bi-search"></i>
+                    Search Beneficiaries
+                </div>
+            </div>
+            <div class="search-filters">
+                <form action="{{ url_for('beneficiary.index') }}" method="GET" class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search by name, BMI status, or section..." name="search_query" value="{{ search_query if search_query else '' }}">
+                </form>
+            </div>
+        </div>
+    
+        {% if beneficiaries %}
+        <!-- Enhanced Beneficiary Table -->
+        <div class="beneficiary-table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <i class="bi bi-table"></i>
+                    Beneficiaries Directory
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Student Information</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Level & Section</th>
+                            <th>Measurements</th>
+                            <th>BMI Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in beneficiaries %}
+                        <tr>
+                            <td>
+                                <div class="beneficiary-info">
+                                        <div class="beneficiary-avatar">
+                                        {{ student.name[0].upper() if student.name else 'B' }}
+                                    </div>
+                                    <div class="beneficiary-details">
+                                        <h6>{{ student.name }}</h6>
+                                        <div class="text-muted">ID: {{ student.id }}</div>
+                                    </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-semibold">{{ student.age or 'N/A' }}</span>
+                            {% if student.age %} years{% endif %}
+                        </td>
+                        <td>
+                            {% if student.gender %}
+                                <span class="gender-badge gender-{{ student.gender.lower() }}">
+                                    <i class="bi bi-{{ 'gender-male' if student.gender == 'Male' else 'gender-female' }}"></i>
+                                    {{ student.gender }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if student.section and student.section.grade_level_obj %}
+                                <strong>{{ student.section.grade_level_obj.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ student.section.name }}</small>
+                            {% elif student.section %}
+                                <strong>{{ student.section.name }}</strong>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>
+                                <small class="text-muted">Height:</small> <strong>{{ student.height or 'N/A' }}</strong>{% if student.height %} cm{% endif %}
+                                <br>
+                                <small class="text-muted">Weight:</small> <strong>{{ student.weight or 'N/A' }}</strong>{% if student.weight %} kg{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if student.bmi %}
+                                {% set status_class = 'status-normal' %}
+                                {% set status_text = 'Normal' %}
+                                {% if student.bmi < 18.5 %}
+                                    {% set status_class = 'status-underweight' %}
+                                    {% set status_text = 'Underweight' %}
+                                {% elif student.bmi >= 30 %}
+                                    {% set status_class = 'status-obese' %}
+                                    {% set status_text = 'Obese' %}
+                                {% elif student.bmi >= 25 %}
+                                    {% set status_class = 'status-overweight' %}
+                                    {% set status_text = 'Overweight' %}
+                                {% endif %}
+                                <div class="bmi-status {{ status_class }}">
+                                    {{ "%.1f"|format(student.bmi) }}
+                                    <br>
+                                    <small>{{ status_text }}</small>
+                                </div>
+                            {% else %}
+                                <span class="bmi-status status-no-bmi">No BMI</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('student.view', student_id=student.id, from='beneficiary') }}" class="btn-action btn-edit">
+                                    <i class="bi bi-eye"></i>
+                                    View
+                                </a>
+                                <button type="button" class="btn-action btn-delete" data-student-id="{{ student.id }}" data-student-name="{{ student.name|e }}">
+                                    <i class="bi bi-person-dash"></i>
+                                    Remove from List
+                                </button>
+                            </div>
+                            
+                            <!-- Hidden form for removal from beneficiary list -->
+                            <form id="removeForm{{ student.id }}" method="POST" action="{{ url_for('beneficiary.remove_from_beneficiary', student_id=student.id) }}" style="display: none;">
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-heart-pulse"></i>
+            <h3>No Beneficiaries Found</h3>
+            <p>No students with underweight, overweight, or obese BMI were found among students you registered.</p>
+            <p>This could be because:</p>
+            <ul>
+                <li>All students have normal BMI (18.5-24.9)</li>
+                <li>Students don't have BMI values calculated</li>
+                <li>You haven't registered any students yet</li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+
+
+<script>
+// Button loading animation consistency
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-action').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            const icon = this.querySelector('i');
+            if (!icon) return;
+            const original = icon.className;
+            icon.className = 'bi bi-hourglass-split';
+            setTimeout(()=>{ icon.className = original; }, 1500);
+        });
+    });
+});
+function confirmRemoveFromBeneficiary(studentId, studentName) {
+    if (confirm(`Are you sure you want to remove "${studentName}" from the beneficiary list?\n\nThis action will:\n• Remove them from the beneficiary list\n• Keep their student record intact\n• They can be added back as beneficiary later\n\nContinue?`)) {
+        document.getElementById('removeForm' + studentId).submit();
+        return true;
+    }
+    return false;
+}
+
+// Add loading state to buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const removeButtons = document.querySelectorAll('button.btn-delete[data-student-id]');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const studentId = this.getAttribute('data-student-id');
+            const studentName = this.getAttribute('data-student-name');
+            if (confirmRemoveFromBeneficiary(studentId, studentName)) {
+                // Add loading state after confirmation
+                setTimeout(() => {
+                    this.innerHTML = '<i class="bi bi-hourglass-split"></i> Removing...';
+                    this.disabled = true;
+                }, 100);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Create New Section</h3>
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Section Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="grade_level" class="form-label">Grade Level</label>
+                            <input type="text" class="form-control" id="grade_level" name="grade_level" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Section</button>
+                        <a href="{{ url_for('section.index') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

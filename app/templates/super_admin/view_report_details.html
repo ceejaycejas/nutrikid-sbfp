@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .report-header {
+        background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 16px rgba(168, 85, 247, 0.2);
+    }
+    
+    .report-header h2 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .report-meta {
+        margin-top: 0.5rem;
+        opacity: 0.9;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        border: none;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .info-card-header {
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(59, 130, 246, 0.1));
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+    }
+    
+    .info-card-header h4 {
+        margin: 0;
+        color: #a855f7;
+        font-weight: 600;
+    }
+    
+    .info-card-body {
+        padding: 1.5rem;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #374151;
+    }
+    
+    .info-value {
+        color: #6b7280;
+        text-align: right;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .status-read {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        color: #155724;
+    }
+    
+    .status-unread {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        color: #856404;
+    }
+    
+    .students-table {
+        margin-top: 1rem;
+    }
+    
+    .students-table .table {
+        margin: 0;
+    }
+    
+    .students-table .table thead th {
+        background: linear-gradient(135deg, #a855f7, #3b82f6);
+        color: white;
+        border: none;
+        font-weight: 600;
+        padding: 1rem;
+    }
+    
+    .students-table .table tbody td {
+        padding: 0.75rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .students-table .table tbody tr:hover {
+        background: rgba(168, 85, 247, 0.05);
+    }
+    
+    .back-btn {
+        background: linear-gradient(135deg, #6b7280, #4b5563);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+        background: linear-gradient(135deg, #4b5563, #374151);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="report-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h2><i class="bi bi-file-earmark-text me-2"></i>{{ notification.title }}</h2>
+                <div class="report-meta">
+                    <i class="bi bi-calendar me-1"></i>
+                    Submitted on {{ notification.created_at.strftime('%B %d, %Y at %I:%M %p') if notification.created_at else 'N/A' }}
+                </div>
+            </div>
+            <div>
+                {% if notification.is_read %}
+                    <span class="status-badge status-read">
+                        <i class="bi bi-check-circle"></i> Reviewed
+                    </span>
+                {% else %}
+                    <span class="status-badge status-unread">
+                        <i class="bi bi-clock"></i> Pending Review
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Report Information -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h4><i class="bi bi-info-circle me-2"></i>Report Information</h4>
+                </div>
+                <div class="info-card-body">
+                    <div class="info-item">
+                        <span class="info-label">Report Type:</span>
+                        <span class="info-value">Student Nutritional Report</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Priority:</span>
+                        <span class="info-value text-capitalize">{{ notification.priority }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Students Included:</span>
+                        <span class="info-value">{{ students|length }} students</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Submission Date:</span>
+                        <span class="info-value">{{ notification.created_at.strftime('%Y-%m-%d %H:%M') if notification.created_at else 'N/A' }}</span>
+                    </div>
+                    {% if notification.read_at %}
+                    <div class="info-item">
+                        <span class="info-label">Reviewed Date:</span>
+                        <span class="info-value">{{ notification.read_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin & School Information -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h4><i class="bi bi-person-gear me-2"></i>Administrator & School</h4>
+                </div>
+                <div class="info-card-body">
+                    <div class="info-item">
+                        <span class="info-label">Administrator:</span>
+                        <span class="info-value">{{ admin.name if admin else 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{ admin.email if admin else 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">School:</span>
+                        <span class="info-value">{{ school.name if school else 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">School Address:</span>
+                        <span class="info-value">{{ school.address if school and school.address else 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">School Contact:</span>
+                        <span class="info-value">{{ school.contact_number if school and school.contact_number else 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Message -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <h4><i class="bi bi-chat-text me-2"></i>Report Message</h4>
+        </div>
+        <div class="info-card-body">
+            <p class="mb-0">{{ notification.message }}</p>
+        </div>
+    </div>
+    
+    <!-- Report Files (Excel / PDF) -->
+    <div class="info-card">
+        <div class="info-card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Download Full Report Files</h4>
+        </div>
+        <div class="info-card-body d-flex flex-wrap gap-2">
+            {% if school %}
+            <a class="btn btn-success" href="{{ url_for('super_admin.export_school_excel', school_id=school.id) }}">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Export Excel (.xlsx)
+            </a>
+            <a class="btn btn-primary" href="{{ url_for('super_admin.export_school_pdf', school_id=school.id) }}">
+                <i class="bi bi-file-earmark-pdf"></i> Export PDF (.pdf)
+            </a>
+            {% else %}
+            <span class="text-muted">No school is associated with this report.</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="{{ url_for('super_admin.reports') }}" class="back-btn">
+            <i class="bi bi-arrow-left"></i> Back to Reports Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

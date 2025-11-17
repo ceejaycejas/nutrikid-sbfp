@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+
+    
+    /* Notification Bell Animation */
+    .bi-bell:hover {
+        animation: bellRing 0.5s ease-in-out;
+    }
+    
+    @keyframes bellRing {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(15deg); }
+        75% { transform: rotate(-15deg); }
+    }
+    
+    /* Notification badge positioned over bell icon */
+    .notification-badge {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px; /* pill shape */
+        background: #dc3545;
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 999px; /* pill */
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+        z-index: 20;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box; /* include border in sizing */
+        line-height: 1;
+        font-size: 0.7rem;
+        font-weight: 700;
+        white-space: nowrap;
+        text-align: center;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Smaller screens: slightly reduce badge size */
+    @media (max-width: 576px) {
+        .notification-badge { 
+            min-width: 18px; 
+            height: 18px; 
+            font-size: 0.65rem; 
+            right: 8px; 
+            top: 6px; 
+        }
+    }
+    
+    /* Smooth transitions for all interactive elements */
+    .profile-btn, .bi-bell {
+        transition: all 0.2s ease;
+    }
+    
+    /* Profile dropdown styles are handled by base.html */
+    
+    /* School Filter Dropdown Styling */
+    #schoolFilter {
+        background: rgba(255, 255, 255, 0.25) !important;
+        border: 2px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 8px;
+        padding: 0.6rem 2.5rem 0.6rem 1rem;
+        color: white !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        width: 100% !important;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        position: relative;
+        box-sizing: border-box;
+    }
+    
+    #schoolFilter:hover {
+        background: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    #schoolFilter:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.7) !important;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+    }
+    
+    #schoolFilter option {
+        background: #667eea !important;
+        color: white !important;
+        padding: 0.5rem;
+    }
+    
+    #schoolFilter:hover {
+        background: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    #schoolFilter:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.7) !important;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_profile %}
+<div class="dashboard-profile-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: space-between; color: white;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        {% if current_user.profile_image %}
+        <img src="{{ url_for('static', filename=current_user.profile_image) }}" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; object-fit: contain; object-position: center; border: 3px solid white; padding: 0; flex-shrink: 0; display: block; background: white;">
+        {% else %}
+        <img src="{{ url_for('static', filename='img/LOGO1.png') }}" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 3px solid white;">
+        {% endif %}
+        <div>
+            <h5 style="margin: 0; color: white; font-weight: 600;">{{ current_user.name }}</h5>
+            <span class="role-badge role-{{ current_user.role }}">
+                {% if current_user.role == 'super_admin' %}
+                    <i class="bi bi-shield-check"></i> Super Admin
+                {% elif current_user.role == 'admin' %}
+                    <i class="bi bi-person-badge"></i> Admin
+                {% elif current_user.role == 'student' %}
+                    <i class="bi bi-mortarboard"></i> Student
+                {% else %}
+                    <i class="bi bi-person"></i> {{ current_user.role|title }}
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 1rem; flex-shrink: 0;">
+        {% set unread = current_user.notifications|selectattr('is_read', 'equalto', False)|list|length %}
+        <a href="{{ url_for('account.notifications') }}" style="position: relative; color: white; opacity: 1; text-decoration: none; font-size: 1.2rem; transition: color 0.2s ease;">
+            <i class="bi bi-bell"></i>
+            {% if unread > 0 %}
+            <span class="notification-badge" role="status" aria-label="{{ unread }} unread notifications">{{ (unread if unread <= 99 else '99+') }}</span>
+            {% endif %}
+        </a>
+        
+        <!-- Profile Dropdown -->
+        <div class="profile-dropdown" id="profileDropdown" style="position: relative;">
+            <button class="profile-btn" onclick="toggleDropdown(event)" style="background: transparent; border: none; color: white !important; opacity: 1; cursor: pointer; font-size: 1.2rem; padding: 0.25rem; transition: color 0.2s ease; text-shadow: 0 0 2px rgba(0,0,0,0.3); filter: drop-shadow(0 0 1px rgba(0,0,0,0.5));">
+                <i class="bi bi-caret-down-fill" style="color: white !important; text-shadow: 0 0 2px rgba(0,0,0,0.3);"></i>
+            </button>
+            <div class="dropdown-menu profile-menu" id="dropdownMenu">
+                <a href="{{ url_for('main.index') }}">
+                    <i class="bi bi-house"></i> Home
+                </a>
+                <a href="{{ url_for('account.settings') }}">
+                    <i class="bi bi-gear"></i> Settings
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="logout">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if is_super_admin_view is defined and is_super_admin_view %}
+<!-- School Filter Card -->
+<div class="container-fluid" style="margin-bottom: 1.5rem;">
+    <div class="card" style="border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.25rem 1.5rem;">
+        <div class="d-flex align-items-center justify-content-between" style="gap: 2rem;">
+            <div class="d-flex align-items-center gap-3" style="flex-shrink: 0;">
+                <i class="bi bi-building" style="font-size: 1.5rem; color: white;"></i>
+                <div>
+                    <h6 style="margin: 0; color: white; font-weight: 600; font-size: 0.95rem;">Filter by School</h6>
+                    <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 0.85rem;">Select a school to view its dashboard</p>
+                </div>
+            </div>
+            <div style="position: relative; flex: 1; min-width: 0; width: 100%;">
+                <select id="schoolFilter" onchange="filterBySchool(this.value)" style="width: 100%; min-width: 100%; background: rgba(255, 255, 255, 0.25); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 0.75rem 2.5rem 0.75rem 1rem; color: white; font-weight: 500; font-size: 0.95rem; cursor: pointer; appearance: none; -webkit-appearance: none; -moz-appearance: none; transition: all 0.3s ease; box-sizing: border-box;">
+                    <option value="" style="background: #667eea; color: white;">All Schools</option>
+                    {% if all_schools is defined and all_schools %}
+                        {% for school in all_schools %}
+                        <option value="{{ school.id }}" {% if selected_school_id is defined and selected_school_id == school.id %}selected{% endif %} style="background: #667eea; color: white;">{{ school.name }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="" style="background: #667eea; color: white;">No schools available</option>
+                    {% endif %}
+                </select>
+                <i class="bi bi-chevron-down" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: white; pointer-events: none; font-size: 1rem;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    /* Role Badge Styles */
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .role-badge.role-admin {
+        background: rgba(40, 167, 69, 0.2);
+        border-color: rgba(40, 167, 69, 0.3);
+    }
+    
+    .role-badge.role-super_admin {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: rgba(220, 53, 69, 0.3);
+    }
+    
+    /* Enhanced Dashboard Cards */
+    .dashboard-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .dashboard-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .dashboard-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .dashboard-card h5 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card" style="border: none; background: transparent;">
+                <div class="card-body" style="padding: 0;">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card dashboard-card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-people" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                    <h5>Total Students</h5>
+                                    <h2>{{ total_students or 0 }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card dashboard-card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-mortarboard" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                    <h5>Total Sections</h5>
+                                    <h2>{{ total_sections or 0 }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card dashboard-card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-person-heart" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                    <h5>Beneficiaries</h5>
+                                    <h2>{{ total_beneficiaries or 0 }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card dashboard-card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-exclamation-triangle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                    <h5>At Risk</h5>
+                                    <h2>{{ num_at_risk or 0 }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="bi bi-pie-chart me-2"></i>BMI Distribution of Students</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if bmi_distribution.normal > 0 or bmi_distribution.wasted > 0 or bmi_distribution.severely_wasted > 0 or bmi_distribution.overweight > 0 %}
+                                        <!-- Custom Legend -->
+                                        <div class="chart-legend mb-3">
+                                            <div class="d-flex justify-content-center flex-wrap gap-3">
+                                                <div class="legend-item d-flex align-items-center">
+                                                    <span class="legend-color me-2" style="width: 16px; height: 16px; background-color: #28a745; border-radius: 3px; display: inline-block;"></span>
+                                                    <span class="legend-label">Normal</span>
+                                                </div>
+                                                <div class="legend-item d-flex align-items-center">
+                                                    <span class="legend-color me-2" style="width: 16px; height: 16px; background-color: #ffc107; border-radius: 3px; display: inline-block;"></span>
+                                                    <span class="legend-label">Wasted</span>
+                                                </div>
+                                                <div class="legend-item d-flex align-items-center">
+                                                    <span class="legend-color me-2" style="width: 16px; height: 16px; background-color: #dc3545; border-radius: 3px; display: inline-block;"></span>
+                                                    <span class="legend-label">Severely Wasted</span>
+                                                </div>
+                                                <div class="legend-item d-flex align-items-center">
+                                                    <span class="legend-color me-2" style="width: 16px; height: 16px; background-color: #fd7e14; border-radius: 3px; display: inline-block;"></span>
+                                                    <span class="legend-label">Overweight</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="chart-container" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                                            <canvas id="bmiBeneficiaryChart" width="400" height="300"></canvas>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-4">
+                                            <i class="bi bi-pie-chart" style="font-size: 3rem; color: #bdc3c7;"></i>
+                                            <p class="mt-2 text-muted">No BMI data available for students</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>At-Risk Students</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if at_risk_students and at_risk_students|length > 0 %}
+                                    <div class="list-group">
+                                        {% for student in at_risk_students[:5] %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <h6 class="mb-1">{{ student.name }}</h6>
+                                                    <p class="mb-1 text-muted small">
+                                                        {{ student.section.name if student.section else 'No Section' }}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <span class="badge bg-danger">
+                                                        BMI: {{ "%.1f"|format(student.bmi) if student.bmi else 'N/A' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if at_risk_students|length > 5 %}
+                                    <div class="text-center mt-3">
+                                        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-primary btn-sm">
+                                            View All {{ at_risk_students|length }} At-Risk Students
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    {% else %}
+                                    <div class="text-center">
+                                        <i class="bi bi-shield-check text-success" style="font-size: 3rem;"></i>
+                                        <h4>All Clear!</h4>
+                                        <p>No critical health alerts at this time.</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// BMI Distribution Chart for Students
+document.addEventListener('DOMContentLoaded', function() {
+    // Only initialize chart if the element exists and we have data
+    const chartElement = document.getElementById('bmiBeneficiaryChart');
+    if (chartElement) {
+        // Check if we have data to display
+        const normal = parseInt("{{ bmi_distribution.normal or 0 }}");
+        const wasted = parseInt("{{ bmi_distribution.wasted or 0 }}");
+        const severelyWasted = parseInt("{{ bmi_distribution.severely_wasted or 0 }}");
+        const overweight = parseInt("{{ bmi_distribution.overweight or 0 }}");
+        
+        // Only create chart if we have data
+        if (normal > 0 || wasted > 0 || severelyWasted > 0 || overweight > 0) {
+            const ctx = chartElement.getContext('2d');
+            const bmiChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Normal', 'Wasted', 'Severely Wasted', 'Overweight'],
+                    datasets: [{
+                        data: [
+                            normal,
+                            wasted,
+                            severelyWasted,
+                            overweight
+                        ],
+                        backgroundColor: [
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545',
+                            '#fd7e14'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverBorderWidth: 4,
+                        hoverBorderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#ffffff',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed * 100) / total).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 1000
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+
+<script>
+
+    // School filter functionality
+    function filterBySchool(schoolId) {
+        const url = new URL(window.location.href);
+        if (schoolId) {
+            url.searchParams.set('school_id', schoolId);
+        } else {
+            url.searchParams.delete('school_id');
+        }
+        window.location.href = url.toString();
+    }
+    
+    // Dropdown functionality - Use same approach as super admin
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        document.getElementById('profileDropdown').classList.toggle('open');
+    }
+    
+    // Close dropdown when clicking outside
+    window.onclick = function(event) {
+        if (!event.target.closest('.profile-dropdown')) {
+            document.getElementById('profileDropdown')?.classList.remove('open');
+        }
+    }
+    
+    // Enhanced card animations
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.dashboard-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.classList.add('animate__animated', 'animate__fadeInUp');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,571 @@
+{% extends "base.html" %}
+
+{% block dashboard_profile %}
+{% endblock %}
+
+{% block content %}
+<style>
+    .profile-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 1rem 0;
+    }
+    
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .profile-avatar {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        margin: 0 auto 1.5rem;
+        position: relative;
+        border: 5px solid #4CAF50;
+        object-fit: contain;
+        object-position: center;
+        background: #ffffff;
+        padding: 0;
+        display: block;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .profile-avatar:hover {
+        transform: scale(1.05);
+    }
+    
+    .profile-avatar:active {
+        transform: scale(0.98);
+    }
+    
+    /* Image Modal/Lightbox Styles */
+    .image-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: none !important; /* Removed to prevent flickering */
+    }
+    
+    .image-modal.active {
+        display: flex;
+        opacity: 1;
+        transition: none !important; /* Removed to prevent flickering */
+    }
+    
+    .image-modal-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .image-modal-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        object-fit: contain;
+    }
+    
+    .image-modal-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        font-size: 2rem;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .image-modal-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+    
+    .image-modal-close:active {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(0.95);
+    }
+    
+    /* Mobile-specific modal styles */
+    @media (max-width: 768px) {
+        .image-modal {
+            padding: 10px;
+        }
+        
+        .image-modal-content {
+            max-width: 95%;
+            max-height: 85vh;
+            padding: 10px;
+        }
+        
+        .image-modal-content img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+        }
+        
+        .image-modal-close {
+            top: -35px;
+            right: 5px;
+            width: 44px;
+            height: 44px;
+            font-size: 1.8rem;
+            background: rgba(255, 255, 255, 0.25);
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0.3);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .image-modal-content {
+            max-width: 98%;
+            max-height: 90vh;
+        }
+        
+        .image-modal-content img {
+            max-height: 85vh;
+        }
+        
+        .image-modal-close {
+            top: -30px;
+            width: 40px;
+            height: 40px;
+            font-size: 1.6rem;
+        }
+    }
+    
+    .profile-name {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-info {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .health-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.2rem;
+        text-align: left;
+        border-left: 4px solid #4CAF50;
+    }
+
+    /* BMI Status specific border colors */
+    .stat-card.status-severely { border-left-color: #e74c3c; } /* Red - Severely Underweight */
+    .stat-card.status-underweight { border-left-color: #ff6b35; } /* Orange - Underweight */
+    .stat-card.status-normal { border-left-color: #28a745; } /* Green - Normal */
+    .stat-card.status-overweight { border-left-color: #ffc107; } /* Yellow - Overweight */
+    .stat-card.status-obese { border-left-color: #8b1e2d; } /* Dark Red - Obese */
+    
+    .stat-label {
+        color: #7f8c8d;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+    }
+    
+    .stat-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        line-height: 1.4;
+    }
+    
+    .update-form {
+        background: white;
+        border-radius: 20px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        margin-bottom: 2rem; /* Space between update form and profile card */
+    }
+    
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.15);
+        outline: none;
+    }
+    
+    .btn-update {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 auto;
+    }
+    
+    .btn-update:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .health-stats {
+            grid-template-columns: 1fr;
+        }
+        /* Add a bit more breathing room on narrow screens */
+        .update-form { margin-bottom: 2.5rem; }
+    }
+    
+</style>
+
+<div class="profile-container">
+    <div class="container">
+        <!-- Update Health Information Form -->
+        <div class="update-form">
+            <div class="form-title">
+                <i class="bi bi-pencil-square" style="color: #4CAF50;"></i>
+                Update My Health Information
+            </div>
+            
+            <form method="POST" action="{{ url_for('student.update_info') }}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-rulers"></i> Height (cm)
+                        </label>
+                        <input type="number" step="0.1" name="height" class="form-control" 
+                               value="{{ student.height }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-speedometer2"></i> Weight (kg)
+                        </label>
+                        <input type="number" step="0.1" name="weight" class="form-control" 
+                               value="{{ student.weight }}" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-update">
+                    <i class="bi bi-check-circle"></i> Update My Information
+                </button>
+            </form>
+        </div>
+
+        <!-- Profile Information Card -->
+        <div class="profile-card">
+            <div class="position-relative d-inline-block">
+                {% if current_user.profile_image %}
+                <img src="{{ url_for('static', filename=current_user.profile_image) }}" 
+                     alt="Profile" 
+                     class="profile-avatar"
+                     data-image-src="{{ url_for('static', filename=current_user.profile_image) }}">
+                {% else %}
+                <img src="{{ url_for('static', filename='img/LOGO1.png') }}" 
+                     alt="Profile" 
+                     class="profile-avatar"
+                     data-image-src="{{ url_for('static', filename='img/LOGO1.png') }}">
+                {% endif %}
+            </div>
+            
+            <h2 class="profile-name">{{ student.name }}</h2>
+            <p class="profile-info">
+                {{ student.gender|title }} • {{ student.age }} years old
+            </p>
+            
+            <div class="health-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Height</div>
+                    <div class="stat-value">{{ "%.1f"|format(student.height) }} cm</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Weight</div>
+                    <div class="stat-value">{{ "%.1f"|format(student.weight) }} kg</div>
+                </div>
+                {# BMI Status card with dynamic border class based on BMI category #}
+                {% set bmi_cat = (student.bmi_category or '') | lower %}
+                {% set bmi_class = 'status-normal' %}
+                {% if 'severely' in bmi_cat %}
+                    {% set bmi_class = 'status-severely' %}
+                {% elif 'underweight' in bmi_cat %}
+                    {% set bmi_class = 'status-underweight' %}
+                {% elif 'normal' in bmi_cat %}
+                    {% set bmi_class = 'status-normal' %}
+                {% elif 'overweight' in bmi_cat %}
+                    {% set bmi_class = 'status-overweight' %}
+                {% elif 'obese' in bmi_cat %}
+                    {% set bmi_class = 'status-obese' %}
+                {% endif %}
+
+                <div class="stat-card {{ bmi_class }}">
+                    <div class="stat-label">BMI Status</div>
+                    <div class="stat-value">
+                        {% if student.health_status is mapping %}
+                            {{ student.health_status.get('message', 'No Data') }}
+                        {% else %}
+                            {{ student.bmi_category }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">School</div>
+                    <div class="stat-value">{{ student.school.name if student.school else 'N/A' }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Grade & Section</div>
+                    <div class="stat-value">{{ (student.section.grade_level.name + ' - ' + student.section.name) if student.section and student.section.grade_level else student.section.name if student.section else 'N/A' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image Modal/Lightbox Functionality
+function showImageModal(imageSrc) {
+    if (!imageSrc) {
+        console.error('No image source provided');
+        return;
+    }
+    
+    // Remove any existing modal first
+    const existingModal = document.querySelector('.image-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'image-modal';
+    modal.setAttribute('id', 'imageModal');
+    
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'image-modal-content';
+    
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'image-modal-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.onclick = function(e) {
+        e.stopPropagation();
+        closeImageModal();
+    };
+    // Touch handler for mobile
+    closeBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeImageModal();
+    }, { passive: false });
+    
+    // Create image
+    const img = document.createElement('img');
+    img.src = imageSrc;
+    img.alt = 'Full Size Image';
+    img.onerror = function() {
+        console.error('Error loading image:', imageSrc);
+        closeImageModal();
+        alert('Error loading image. Please try again.');
+    };
+    
+    // Assemble modal
+    modalContent.appendChild(closeBtn);
+    modalContent.appendChild(img);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    
+    // Show modal immediately without animation to prevent flickering
+    modal.classList.add('active');
+    
+    // Close on clicking outside
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            closeImageModal();
+        }
+    };
+    
+    // Close on Escape key
+    const escapeHandler = function(e) {
+        if (e.key === 'Escape' || e.keyCode === 27) {
+            closeImageModal();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal') || document.querySelector('.image-modal');
+    if (modal) {
+        modal.classList.remove('active');
+        // Remove immediately without delay to prevent flickering
+        if (modal.parentNode) {
+            modal.remove();
+        }
+        document.body.style.overflow = '';
+    }
+}
+
+// Helper function to show image modal (works for both click and touch)
+function handleImageClick(element, e) {
+    e.stopPropagation();
+    e.preventDefault();
+    const imageSrc = element.getAttribute('data-image-src') || element.src;
+    if (imageSrc) {
+        try {
+            showImageModal(imageSrc);
+        } catch (error) {
+            console.error('Error showing image modal:', error);
+        }
+    }
+    return false;
+}
+
+// Enhanced form interactions and image click handlers
+document.addEventListener('DOMContentLoaded', function() {
+    // Add focus effects to form controls
+    const formControls = document.querySelectorAll('.form-control');
+    formControls.forEach(control => {
+        control.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'translateY(-2px)';
+        });
+        
+        control.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Add click effect to update button
+    const updateBtn = document.querySelector('.btn-update');
+    if (updateBtn) {
+        updateBtn.addEventListener('click', function(e) {
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(-2px)';
+            }, 100);
+        });
+    }
+    
+    // Profile image handlers (click and touch)
+    const profileImg = document.querySelector('.profile-avatar');
+    if (profileImg) {
+        // Click handler
+        profileImg.addEventListener('click', function(e) {
+            handleImageClick(this, e);
+        });
+        
+        // Touch handlers for mobile
+        let touchStartTime = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        profileImg.addEventListener('touchstart', function(e) {
+            touchStartTime = Date.now();
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            e.stopPropagation();
+        }, { passive: true });
+        
+        profileImg.addEventListener('touchend', function(e) {
+            const touchDuration = Date.now() - touchStartTime;
+            const touch = e.changedTouches[0];
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+            const deltaX = Math.abs(touchEndX - touchStartX);
+            const deltaY = Math.abs(touchEndY - touchStartY);
+            
+            // Only trigger on quick tap (not long press or swipe)
+            if (touchDuration < 300 && deltaX < 10 && deltaY < 10) {
+                handleImageClick(this, e);
+            }
+            e.stopPropagation();
+        });
+    }
+});
+</script>
+{% endblock %}

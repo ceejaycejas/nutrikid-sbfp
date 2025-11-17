@@ -1,0 +1,679 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .reports-header {
+        background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 16px rgba(168, 85, 247, 0.2);
+        position: relative;
+        overflow: hidden;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .reports-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        transform: rotate(45deg);
+    }
+    
+    .reports-header-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .reports-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        line-height: 1.2;
+    }
+    
+    .reports-header .subtitle {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        margin-top: 0.25rem;
+        line-height: 1.3;
+    }
+    
+    .stats-bar {
+        background: white;
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .stats-left {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+    
+    .stats-item {
+        text-align: center;
+    }
+    
+    .stats-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #a855f7;
+        display: block;
+    }
+    
+    .stats-label {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+    
+    .filter-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .filter-select {
+        background: white;
+        border: 2px solid #f1f3f4;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        min-width: 220px;
+    }
+    
+    .filter-select:focus {
+        border-color: #a855f7;
+        box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
+        outline: none;
+    }
+    
+    .filter-label {
+        font-weight: 600;
+        color: #374151;
+        margin: 0;
+    }
+    
+    .reports-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        border: none;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    
+    .reports-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+    
+    .reports-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #a855f7, #3b82f6);
+    }
+    
+    .table {
+        margin: 0;
+        border-radius: 0;
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #a855f7, #3b82f6);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 1.2rem 1rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .table tbody td {
+        padding: 1.2rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .table tbody td:first-child {
+        padding-left: 1.5rem;
+    }
+    
+    .table tbody td:last-child {
+        padding-right: 1.5rem;
+    }
+    
+    .table tbody tr {
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s ease forwards;
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(59, 130, 246, 0.05));
+        transform: translateX(4px);
+    }
+    .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+    .table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+    .table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+    .table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    
+    .admin-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .admin-avatar {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #a855f7, #3b82f6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    
+    .admin-details h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .admin-details small {
+        color: #7f8c8d;
+    }
+    
+    .school-badge {
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(59, 130, 246, 0.1));
+        color: #a855f7;
+        padding: 0.6rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        display: inline-block;
+        text-align: center;
+        min-width: 180px;
+        word-wrap: break-word;
+        line-height: 1.3;
+    }
+    
+    .school-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .school-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.95rem;
+        line-height: 1.2;
+    }
+    
+    .school-type {
+        font-size: 0.75rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .date-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        min-width: 80px;
+    }
+    
+    .date-day {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #2c3e50;
+        line-height: 1;
+    }
+    
+    .date-month {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.2rem;
+    }
+    
+    .date-time {
+        font-size: 0.75rem;
+        color: #95a5a6;
+        margin-top: 0.3rem;
+        font-weight: 500;
+    }
+    
+    .btn-view {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-view:hover {
+        background: linear-gradient(135deg, #00f2fe, #4facfe);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-delete {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #ee5a24, #c44569);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        color: white;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        align-items: stretch;
+    }
+    
+    .btn-group .btn-view,
+    .btn-group .btn {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        text-align: center;
+        min-width: 100px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #7f8c8d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #bdc3c7;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #34495e;
+    }
+    
+    .empty-state p {
+        font-size: 1rem;
+        margin: 0;
+    }
+    
+    .report-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+    
+    .report-title {
+        font-weight: 600;
+        color: #2563eb;
+        font-size: 0.95rem;
+        line-height: 1.3;
+    }
+    
+    .report-subtitle {
+        font-size: 0.8rem;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.5rem 1rem;
+        border-radius: 15px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        min-width: 90px;
+        text-align: center;
+    }
+    
+    .badge.bg-success {
+        background: linear-gradient(135deg, #28a745, #20c997) !important;
+        color: white;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    }
+    
+    .badge.bg-warning {
+        background: linear-gradient(135deg, #ffc107, #fd7e14) !important;
+        color: #212529;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+    }
+    
+    .btn-outline-success {
+        border: 1px solid #28a745;
+        color: #28a745;
+        background: transparent;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-success:hover {
+        background: #28a745;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    /* Alert Message Styling */
+    .alert {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        padding: 1rem 1.5rem;
+        animation: slideIn 0.5s ease;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        border-left: 4px solid #28a745;
+        color: #155724;
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        border-left: 4px solid #dc3545;
+        color: #721c24;
+    }
+    
+    .alert i {
+        margin-right: 0.5rem;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .reports-header {
+            padding: 0.75rem 1rem;
+            min-height: 50px;
+        }
+        
+        .reports-header h2 {
+            font-size: 1.25rem;
+        }
+        
+        .reports-header .subtitle {
+            font-size: 0.8rem;
+        }
+        
+        .stats-bar {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .stats-left {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .filter-container {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .filter-select {
+            width: 100%;
+        }
+        
+        .admin-info {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .btn-group {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+<div class="container py-4">
+
+    
+    <!-- Header Section -->
+    <div class="reports-header">
+        <div class="reports-header-content">
+            <h2><i class="bi bi-file-earmark-text me-2"></i>Reports Dashboard</h2>
+            <p class="subtitle">View and manage all submitted reports from school administrators</p>
+        </div>
+    </div>
+    
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stats-left">
+            <div class="stats-item">
+                <span class="stats-number">{{ reports|length }}</span>
+                <span class="stats-label">Total Reports</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-number">{{ admins.values()|list|length }}</span>
+                <span class="stats-label">Active Admins</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-number">{{ schools.values()|list|length }}</span>
+                <span class="stats-label">Schools</span>
+            </div>
+        </div>
+        <div class="filter-container">
+            <form method="get" class="d-flex align-items-center gap-2" id="adminFilterForm">
+                <label for="admin_id" class="filter-label">Filter by Admin:</label>
+                <select name="admin_id" id="admin_id" class="filter-select" onchange="document.getElementById('adminFilterForm').submit();">
+                    <option value="">All Admins</option>
+                    {% for admin in admins.values() %}
+                        <option value="{{ admin.id }}" {% if selected_admin_id == admin.id %}selected{% endif %}>{{ admin.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Reports Card -->
+    <div class="reports-card position-relative">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Administrator</th>
+                        <th style="width: 22%;">School</th>
+                        <th style="width: 20%;">Report Details</th>
+                        <th style="width: 15%;">Submission Date</th>
+                        <th style="width: 10%;">Status</th>
+                        <th style="width: 13%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>
+                            {% if report.admin %}
+                                <div class="admin-info">
+                                    <div class="admin-avatar">
+                                        {{ report.admin.name[0].upper() }}
+                                    </div>
+                                    <div class="admin-details">
+                                        <h6>{{ report.admin.name }}</h6>
+                                        <small>{{ report.admin.email }}</small>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if report.school %}
+                                <div class="school-info">
+                                    <div class="school-name">
+                                        <i class="bi bi-building me-2"></i>
+                                        {{ report.school.name }}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="report-summary">
+                                <div class="report-title">{{ report.notification.title }}</div>
+                                <div class="report-subtitle">
+                                    <i class="bi bi-people-fill"></i>
+                                    {{ report.student_count }} students included
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if report.notification.created_at %}
+                                <div class="date-info">
+                                    <div class="date-day">{{ report.notification.created_at.strftime('%d') }}</div>
+                                    <div class="date-month">{{ report.notification.created_at.strftime('%b %Y') }}</div>
+                                    <div class="date-time">{{ report.notification.created_at.strftime('%H:%M') }}</div>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if report.notification.is_read %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Reviewed
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-clock me-1"></i>Pending
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('super_admin.view_report_details', notification_id=report.notification.id) }}" class="btn-view">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                                <form action="{{ url_for('super_admin.delete_report_notification', notification_id=report.notification.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn-delete" onclick="return confirm('Are you sure you want to delete this report? This action cannot be undone.');">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                                {% if not report.notification.is_read %}
+                                <form action="{{ url_for('super_admin.mark_report_read', notification_id=report.notification.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check"></i> Mark Read
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="p-0">
+                            <div class="empty-state">
+                                <i class="bi bi-file-earmark-text"></i>
+                                <h3>No Reports Found</h3>
+                                <p>{% if selected_admin_id %}No reports found for the selected administrator.{% else %}There are currently no submitted reports in the system.{% endif %}</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.btn-view, .btn-delete, .btn-outline-success').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const icon = this.querySelector('i');
+      if (!icon) return;
+      const original = icon.className;
+      icon.className = 'bi bi-hourglass-split';
+      setTimeout(()=>{ icon.className = original; }, 1500);
+    });
+  });
+});
+</script>
+{% endblock %} 

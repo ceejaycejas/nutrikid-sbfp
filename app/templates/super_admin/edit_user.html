@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Edit User</h3>
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ user.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user.email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select class="form-control" id="role" name="role" required>
+                                <option value="super_admin" {% if user.role == 'super_admin' %}selected{% endif %}>Super Admin</option>
+                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                <option value="student" {% if user.role == 'student' %}selected{% endif %}>Student</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="school-select" style="display: none;">
+                            <label for="school_id" class="form-label">School</label>
+                            <select class="form-control" id="school_id" name="school_id">
+                                <option value="">Select School</option>
+                                {% for school in schools %}
+                                <option value="{{ school.id }}" {% if user.school_id == school.id %}selected{% endif %}>
+                                    {{ school.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password (leave blank to keep current)</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update User</button>
+                        <a href="{{ url_for('super_admin.users') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('role').addEventListener('change', function() {
+    const schoolSelect = document.getElementById('school-select');
+    if (this.value === 'admin') {
+        schoolSelect.style.display = 'block';
+    } else {
+        schoolSelect.style.display = 'none';
+    }
+});
+
+// Initialize school select visibility
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('role');
+    const schoolSelect = document.getElementById('school-select');
+    if (roleSelect.value === 'admin') {
+        schoolSelect.style.display = 'block';
+    }
+});
+</script>
+{% endblock %} 

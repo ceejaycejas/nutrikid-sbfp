@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+        position: relative;
+        overflow: hidden;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .form-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        transform: rotate(-45deg);
+    }
+    
+    .form-header-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .form-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        line-height: 1.2;
+    }
+    
+    .form-header .subtitle {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        margin-top: 0.25rem;
+        line-height: 1.3;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        border: none;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    
+    .form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    
+    .form-card .card-body {
+        padding: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-label i {
+        color: #667eea;
+    }
+    
+    .form-control {
+        border: 2px solid #f1f3f4;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: #fafbfc;
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        outline: none;
+        background: white;
+        transform: translateY(-2px);
+    }
+    
+    .form-control:hover {
+        border-color: #e2e8f0;
+        background: white;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        font-size: 0.95rem;
+    }
+    
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #764ba2, #667eea);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    /* Alert Message Styling */
+    .alert {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        padding: 1rem 1.5rem;
+        animation: slideIn 0.5s ease;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        border-left: 4px solid #28a745;
+        color: #155724;
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        border-left: 4px solid #dc3545;
+        color: #721c24;
+    }
+    
+    .alert i {
+        margin-right: 0.5rem;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .form-header {
+            padding: 0.75rem 1rem;
+            min-height: 50px;
+        }
+        
+        .form-header h2 {
+            font-size: 1.25rem;
+        }
+        
+        .form-header .subtitle {
+            font-size: 0.8rem;
+        }
+        
+        .form-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+        
+        .btn-submit,
+        .btn-cancel {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    
+    <!-- Header Section -->
+    <div class="form-header">
+        <div class="form-header-content">
+            <h2><i class="bi bi-person-plus me-2"></i>Create New Student</h2>
+            <p class="subtitle">Add a new student to the system</p>
+        </div>
+    </div>
+    
+    <!-- Form Card -->
+    <div class="form-card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="name" class="form-label">
+                                <i class="bi bi-person"></i>
+                                Name *
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ request.form.get('name', '') }}" required 
+                                   placeholder="Enter student name">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="email" class="form-label">
+                                <i class="bi bi-envelope"></i>
+                                Email *
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ request.form.get('email', '') }}" required 
+                                   placeholder="Enter email address">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="password" class="form-label">
+                                <i class="bi bi-lock"></i>
+                                Password *
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password" required 
+                                   placeholder="Enter password">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="age" class="form-label">
+                                <i class="bi bi-calendar"></i>
+                                Age *
+                            </label>
+                            <input type="number" class="form-control" id="age" name="age" value="{{ request.form.get('age', '') }}" required 
+                                   placeholder="Enter age" min="1" max="25">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="gender" class="form-label">
+                                <i class="bi bi-gender-ambiguous"></i>
+                                Gender *
+                            </label>
+                            <select class="form-control" id="gender" name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male" {% if request.form.get('gender') == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if request.form.get('gender') == 'Female' %}selected{% endif %}>Female</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="school_id" class="form-label">
+                                <i class="bi bi-building"></i>
+                                School
+                            </label>
+                            <select class="form-control" id="school_id" name="school_id">
+                                <option value="">Select School</option>
+                                {% for school in schools %}
+                                <option value="{{ school.id }}" {% if request.form.get('school_id') == school.id|string %}selected{% endif %}>{{ school.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="section_id" class="form-label">
+                                <i class="bi bi-collection"></i>
+                                Section
+                            </label>
+                            <select class="form-control" id="section_id" name="section_id">
+                                <option value="">Select Section</option>
+                                {% for section in sections %}
+                                <option value="{{ section.id }}" {% if request.form.get('section_id') == section.id|string %}selected{% endif %}>{{ section.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="height" class="form-label">
+                                <i class="bi bi-arrows-expand"></i>
+                                Height (cm)
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="height" name="height" value="{{ request.form.get('height', '') }}" 
+                                   placeholder="Enter height in cm">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="weight" class="form-label">
+                                <i class="bi bi-speedometer2"></i>
+                                Weight (kg)
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="weight" name="weight" value="{{ request.form.get('weight', '') }}" 
+                                   placeholder="Enter weight in kg">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <a href="{{ url_for('super_admin.students') }}" class="btn-cancel">
+                        <i class="bi bi-x-circle"></i>
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-check-circle"></i>
+                        Create Student
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        const requiredFields = ['name', 'email', 'password', 'age', 'gender'];
+        
+        requiredFields.forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                showFieldError(field, 'This field is required');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+                hideFieldError(field);
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+    
+    function showFieldError(field, message) {
+        hideFieldError(field);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'invalid-feedback';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+    
+    function hideFieldError(field) {
+        const errorDiv = field.parentNode.querySelector('.invalid-feedback');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
+});
+</script>
+{% endblock %} 

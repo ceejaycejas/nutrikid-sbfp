@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .users-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+        position: relative;
+        overflow: hidden;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .users-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        transform: rotate(45deg);
+    }
+    
+    .users-header-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .users-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        line-height: 1.2;
+    }
+    
+    .users-header .subtitle {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        margin-top: 0.25rem;
+        line-height: 1.3;
+    }
+    
+    .stats-bar {
+        background: white;
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .stats-left {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+    
+    .stats-item {
+        text-align: center;
+    }
+    
+    .stats-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #f093fb;
+        display: block;
+    }
+    
+    .stats-label {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+    
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .search-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .search-box {
+        background: white;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        width: 300px;
+        border: 2px solid #f1f3f4;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        margin: 0;
+    }
+    
+    .search-box:focus-within {
+        border-color: #f093fb;
+        box-shadow: 0 4px 12px rgba(240, 147, 251, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .search-box input {
+        border: none;
+        outline: none;
+        background: transparent;
+        width: 100%;
+        margin-left: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .search-box i {
+        color: #f093fb;
+        font-size: 1.1rem;
+    }
+    
+    .btn-add-user {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(240, 147, 251, 0.3);
+        font-size: 0.95rem;
+    }
+    
+    .btn-add-user:hover {
+        background: linear-gradient(135deg, #f5576c, #f093fb);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(240, 147, 251, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .users-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        border: none;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    
+    .users-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+    
+    .users-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+    }
+    
+    .table {
+        margin: 0;
+        border-radius: 0;
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 1.2rem 1rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(240, 147, 251, 0.05), rgba(245, 87, 108, 0.05));
+        transform: translateX(4px);
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .user-details h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .user-details small {
+        color: #7f8c8d;
+    }
+    
+    .role-badge {
+        background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+        color: #f093fb;
+        padding: 0.4rem 0.8rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(240, 147, 251, 0.2);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .date-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .date-day {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .date-month {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .date-time {
+        font-size: 0.75rem;
+        color: #95a5a6;
+        margin-top: 0.25rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #7f8c8d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #bdc3c7;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #34495e;
+    }
+    
+    .empty-state p {
+        font-size: 1rem;
+        margin: 0;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .users-header {
+            padding: 0.75rem 1rem;
+            min-height: 50px;
+        }
+        
+        .users-header h2 {
+            font-size: 1.25rem;
+        }
+        
+        .users-header .subtitle {
+            font-size: 0.8rem;
+        }
+        
+        .stats-bar {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .stats-left {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .search-box {
+            width: 100%;
+        }
+        
+        .btn-add-user {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .user-info {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="users-header">
+        <div class="users-header-content">
+            <h2><i class="bi bi-shield-check me-2"></i>Super Administrators</h2>
+            <p class="subtitle">Manage system super administrators with full access privileges</p>
+        </div>
+    </div>
+    
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stats-left">
+            <div class="stats-item">
+                <span class="stats-number">{{ users|length }}</span>
+                <span class="stats-label">Super Admins</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-number">
+                    {% set recent_count = 0 %}
+                    {% for user in users %}
+                        {% if user.created_at and (user.created_at.date() == moment().date() if moment else false) %}
+                            {% set recent_count = recent_count + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ recent_count }}
+                </span>
+                <span class="stats-label">Added Today</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-number">100</span>
+                <span class="stats-label">Access Level</span>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <div class="search-container">
+                <form action="{{ url_for('super_admin.users') }}" method="GET" class="search-box mb-0">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search super admins..." name="search_query" value="{{ search_query if search_query else '' }}">
+                    <button type="submit" style="display: none;"></button>
+                </form>
+            </div>
+            <a href="{{ url_for('super_admin.create_user') }}" class="btn-add-user">
+                <i class="bi bi-person-plus"></i> Add New Super Admin
+            </a>
+        </div>
+    </div>
+
+    <!-- Users Card -->
+    <div class="users-card position-relative">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Super Administrator</th>
+                        <th>Access Level</th>
+                        <th>Registration Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    {{ user.name[0].upper() }}
+                                </div>
+                                <div class="user-details">
+                                    <h6>{{ user.name }}</h6>
+                                    <small>{{ user.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="role-badge">
+                                <i class="bi bi-shield-check"></i>
+                                Full Access
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.created_at %}
+                                <div class="date-info">
+                                    <div class="date-day">{{ user.created_at.strftime('%d') }}</div>
+                                    <div class="date-month">{{ user.created_at.strftime('%b %Y') }}</div>
+                                    <div class="date-time">{{ user.created_at.strftime('%H:%M') }}</div>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="p-0">
+                            <div class="empty-state">
+                                <i class="bi bi-shield-check"></i>
+                                <h3>No Super Administrators Found</h3>
+                                <p>{% if search_query %}No super administrators match your search criteria.{% else %}There are currently no super administrators registered in the system.{% endif %}</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

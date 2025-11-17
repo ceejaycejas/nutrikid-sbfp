@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriKid - Welcome</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/LOGO1.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/LOGO1.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/LOGO1.png') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+        :root {
+            --primary-color: #007bff; /* Blue */
+            --secondary-color: #ffffff; /* White */
+            --text-light: #ffffff;
+            --text-dark: #333333;
+            --ghost-button-border: #ffffff;
+            --input-bg: #eee;
+            --container-bg: #fff;
+            --body-bg: #f6f7f8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--body-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+            margin: -20px 0 50px; /* Adjust margin for centering */
+        }
+
+        h1 {
+            font-weight: 700;
+            margin: 0 0 30px 0;
+            color: var(--text-dark);
+            font-size: 2.5rem;
+        }
+
+        h2 {
+            text-align: center;
+             color: var(--text-dark);
+        }
+
+        p {
+            font-size: 14px;
+            font-weight: 100;
+            line-height: 20px;
+            letter-spacing: 0.5px;
+            margin: 20px 0 30px;
+            color: var(--text-dark);
+        }
+        p.overlay-text {
+             color: var(--text-light);
+        }
+
+
+        span {
+            font-size: 12px;
+        }
+
+        a {
+            color: #333;
+            font-size: 14px;
+            text-decoration: none;
+            margin: 15px 0;
+        }
+        a.ghost {
+            color: var(--text-light);
+            border-color: var(--ghost-button-border);
+        }
+         a.auth-link { /* Forgot password etc */
+            font-size: 0.85rem;
+            text-align: right;
+            display: block;
+            margin-top: -5px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+
+        button, a.ghost {
+            border-radius: 12px;
+            border: 2px solid var(--primary-color);
+            background-color: var(--primary-color);
+            color: var(--text-light) !important;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 15px 40px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover, a.ghost:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        button:active, a.ghost:active {
+            transform: scale(0.95);
+        }
+
+        button:focus, a.ghost:focus {
+            outline: none;
+        }
+
+        button.ghost, a.ghost {
+            background-color: transparent;
+            border-color: var(--text-light);
+        }
+
+        form {
+            background-color: var(--container-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 60px 50px;
+            width: 100%;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        input, select, textarea {
+            background-color: var(--input-bg);
+            border: 2px solid transparent;
+            padding: 15px 20px;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+        textarea {
+            min-height: 60px; /* Give textarea some height */
+            resize: vertical; /* Allow vertical resize */
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.07);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            min-height: 600px;
+            display: flex;
+        }
+
+        .form-container {
+            position: relative;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sign-in-container {
+            background: white;
+            z-index: 2;
+        }
+
+
+        @keyframes show {
+            0%, 49.99% {
+                opacity: 0;
+                z-index: 1;
+            }
+
+            50%, 100% {
+                opacity: 1;
+                z-index: 5;
+            }
+        }
+
+        .overlay-container {
+            position: relative;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+
+
+        .overlay {
+            background: var(--primary-color);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: 0 0;
+            color: var(--text-light);
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+
+
+
+        .overlay-panel {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 40px;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+        }
+         /* Shared styles for overlay panel text */
+        .overlay-panel h1, .overlay-panel p {
+             color: var(--text-light); /* Ensure text is light */
+             margin-bottom: 15px;
+         }
+         .overlay-panel p {
+             font-size: 14px;
+             line-height: 1.4;
+         }
+         .overlay-panel h1 {
+             font-size: 1.8rem; /* Adjust size */
+         }
+
+
+
+
+        .auth-logo img {
+            height: 80px; /* Smaller logo for overlay */
+            margin-bottom: 20px;
+        }
+
+         /* Password visibility toggle */
+         .password-wrapper {
+             position: relative;
+             width: 100%; /* Ensure wrapper takes full width */
+             margin: 8px 0; /* Match input margin */
+         }
+         .password-wrapper input {
+             margin: 0; /* Remove margin from input inside wrapper */
+              padding-right: 40px; /* Add padding for icon */
+         }
+         .password-toggle {
+             position: absolute;
+             right: 10px;
+             top: 50%;
+             transform: translateY(-50%);
+             cursor: pointer;
+             color: #6c757d;
+             z-index: 10; /* Ensure icon is clickable */
+         }
+
+        /* Flash Messages */
+         .flash-messages {
+             position: fixed;
+             top: 20px;
+             left: 50%;
+             transform: translateX(-50%);
+             z-index: 9999;
+             width: 90%;
+             max-width: 500px;
+             pointer-events: none;
+         }
+         .flash-messages .alert {
+             pointer-events: auto;
+             padding: 1rem 1.5rem;
+             margin-bottom: 0.5rem;
+             border: none;
+             border-radius: 8px;
+             font-size: 0.9rem;
+             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+             animation: slideInDown 0.3s ease-out;
+         }
+         .alert-success {
+             background: linear-gradient(45deg, #28a745, #20c997);
+             color: white;
+         }
+         .alert-danger {
+             background: linear-gradient(45deg, #dc3545, #fd7e14);
+             color: white;
+         }
+         .alert-info {
+             background: linear-gradient(45deg, #17a2b8, #007bff);
+             color: white;
+         }
+         .alert .btn-close {
+             color: #ffffff !important;
+             opacity: 0.8;
+             background: none;
+             border: none;
+             font-size: 0.8rem;
+             padding: 0.25rem 0.5rem;
+             border-radius: 4px;
+         }
+         .alert .btn-close .close-text {
+             font-size: 0.8rem;
+             font-weight: 500;
+         }
+         .alert .btn-close:hover {
+             opacity: 1;
+             background: rgba(255,255,255,0.1);
+         }
+         @keyframes slideInDown {
+             from {
+                 transform: translateY(-100%);
+                 opacity: 0;
+             }
+             to {
+                 transform: translateY(0);
+                 opacity: 1;
+             }
+         }
+         .alert.fade-out {
+             animation: slideOutUp 0.3s ease-in forwards;
+         }
+         @keyframes slideOutUp {
+             from {
+                 transform: translateY(0);
+                 opacity: 1;
+             }
+             to {
+                 transform: translateY(-100%);
+                 opacity: 0;
+             }
+         }
+
+        /* Mobile Responsive Styles */
+        @media screen and (max-width: 768px) {
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .container {
+                width: 100%;
+                height: 100vh;
+                max-width: none;
+                min-height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+                background-color: transparent;
+            }
+
+            .container {
+                flex-direction: column;
+                max-width: 100%;
+                min-height: 100vh;
+            }
+
+            .form-container {
+                width: 100%;
+                height: auto;
+                padding: 20px;
+            }
+
+            .sign-in-container {
+                background: white;
+                width: 100%;
+            }
+
+            .overlay-container {
+                width: 100%;
+                height: auto;
+                min-height: 200px;
+                order: -1;
+            }
+
+            /* Adjust form styles for mobile */
+            form {
+                padding: 40px 20px;
+                width: 100%;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+
+            input, textarea {
+                margin: 10px 0;
+                padding: 15px;
+            }
+
+            button[type="submit"] {
+                width: 100%;
+                margin-top: 20px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Flash messages container -->
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Close">
+                            <span class="close-text">OK >></span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="container" id="container">
+
+
+
+        <!-- Sign In Form -->
+        <div class="form-container sign-in-container">
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <h1>Sign in</h1>
+                <input name="email" type="email" placeholder="Email" required>
+                <div class="password-wrapper">
+                    <input name="password" type="password" placeholder="Password" required>
+                    <i class="bi bi-eye-slash password-toggle" id="toggleLoginPassword"></i>
+                </div>
+                <a href="/forgot-password" class="auth-link">Forgot your password?</a>
+                <button type="submit">Log In</button>
+            </form>
+        </div>
+
+        <!-- Welcome Panel -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel">
+                     <div class="auth-logo"><img src="{{ url_for('static', filename='img/LOGO1.png') }}" alt="NutriKid Logo"></div>
+                    <h1>Welcome to NutriKid!</h1>
+                    <p class="overlay-text">School Nutrition Management System<br>Please contact your administrator for account access</p>
+                    <div style="text-align: center; font-size: 0.9rem; opacity: 0.8; margin-top: 20px;">
+                        <p>For new school registration,<br>contact the Super Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // --- Password Toggle --- 
+        function setupPasswordToggle(toggleId, passwordFieldSelector) {
+            const toggle = document.getElementById(toggleId);
+            const password = document.querySelector(passwordFieldSelector);
+            if (toggle && password) {
+                toggle.addEventListener('click', function() {
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+                    this.classList.toggle('bi-eye');
+                    this.classList.toggle('bi-eye-slash');
+                });
+            }
+        }
+
+        setupPasswordToggle('toggleLoginPassword', '.sign-in-container input[type="password"]');
+
+        // --- Flash Message Handling --- 
+        function initializeAlerts() {
+            const alerts = document.querySelectorAll('.flash-messages .alert');
+            
+            alerts.forEach(function(alert, index) {
+                // Add staggered animation delay for multiple alerts
+                alert.style.animationDelay = (index * 0.1) + 's';
+                
+                // Auto-dismiss after 4 seconds
+                setTimeout(function() {
+                    dismissAlert(alert);
+                }, 4000 + (index * 500));
+                
+                // Handle manual close button
+                const closeBtn = alert.querySelector('.btn-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        dismissAlert(alert);
+                    });
+                }
+            });
+        }
+        
+        function dismissAlert(alert) {
+            alert.classList.add('fade-out');
+            setTimeout(function() {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 300);
+        }
+        
+        // Initialize alerts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAlerts();
+        });
+        
+        // Also initialize immediately in case DOM is already loaded
+        initializeAlerts();
+    </script>
+</body>
+</html> 

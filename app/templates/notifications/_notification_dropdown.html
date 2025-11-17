@@ -1,0 +1,187 @@
+<!-- Notification Dropdown (for future use in top navigation) -->
+<div class="dropdown notification-dropdown">
+    <button class="btn btn-link notification-bell" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-bell"></i>
+        <span class="notification-badge" id="dropdown-notification-count" style="display: none;"></span>
+    </button>
+    
+    <div class="dropdown-menu dropdown-menu-end notification-dropdown-menu" aria-labelledby="notificationDropdown">
+        <div class="dropdown-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Notifications</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="markAllAsRead()">
+                Mark all read
+            </button>
+        </div>
+        
+        <div class="dropdown-divider"></div>
+        
+        <div id="notification-list" class="notification-list">
+            <div class="text-center p-3">
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dropdown-divider"></div>
+        
+        <div class="dropdown-footer">
+            <a href="{{ url_for('notifications.index') }}" class="btn btn-sm btn-primary w-100">
+                View All Notifications
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.notification-dropdown .notification-bell {
+    position: relative;
+    color: white;
+    border: none;
+    background: none;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+}
+
+.notification-dropdown .notification-bell:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.notification-dropdown-menu {
+    width: 350px;
+    max-height: 400px;
+    border: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border-radius: 12px;
+}
+
+.notification-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: rgba(0, 123, 255, 0.05);
+    border-left: 3px solid #007bff;
+}
+
+.notification-item .notification-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.notification-item .notification-message {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.notification-item .notification-time {
+    font-size: 0.75rem;
+    color: #adb5bd;
+}
+
+.dropdown-header h6 {
+    color: #495057;
+    font-weight: 600;
+}
+
+.dropdown-footer {
+    padding: 0.5rem;
+}
+</style>
+
+<script>
+function loadNotificationDropdown() {
+    fetch('/notifications/api/recent?limit=5')
+        .then(response => response.json())
+        .then(data => {
+            const notificationList = document.getElementById('notification-list');
+            const countBadge = document.getElementById('dropdown-notification-count');
+            
+            if (data.notifications.length === 0) {
+                notificationList.innerHTML = `
+                    <div class="text-center p-3 text-muted">
+                        <i class="bi bi-bell-slash"></i>
+                        <div>No notifications</div>
+                    </div>
+                `;
+            } else {
+                notificationList.innerHTML = data.notifications.map(notification => `
+                    <div class="notification-item ${!notification.is_read ? 'unread' : ''}" 
+                         onclick="markNotificationAsRead(${notification.id})">
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-message">${notification.message.substring(0, 80)}${notification.message.length > 80 ? '...' : ''}</div>
+                        <div class="notification-time">${formatTime(notification.created_at)}</div>
+                    </div>
+                `).join('');
+            }
+            
+            // Update badge
+            if (data.unread_count > 0) {
+                countBadge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                countBadge.style.display = 'inline-block';
+            } else {
+                countBadge.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading notifications:', error);
+            document.getElementById('notification-list').innerHTML = `
+                <div class="text-center p-3 text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <div>Error loading notifications</div>
+                </div>
+            `;
+        });
+}
+
+function markNotificationAsRead(notificationId) {
+    fetch(`/notifications/api/mark-read/${notificationId}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadNotificationDropdown();
+            updateNotificationCount();
+        }
+    });
+}
+
+function formatTime(isoString) {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+}
+
+// Load notifications when dropdown is opened
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdownToggle = document.getElementById('notificationDropdown');
+    if (dropdownToggle) {
+        dropdownToggle.addEventListener('click', function() {
+            loadNotificationDropdown();
+        });
+    }
+});
+</script>

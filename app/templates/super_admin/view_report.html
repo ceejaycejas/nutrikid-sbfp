@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Report Details</h2>
+        <a href="{{ url_for('super_admin.reports') }}" class="btn btn-secondary">Back to Reports</a>
+    </div>
+    <div class="card material-card">
+        <div class="card-body">
+            <h4>Student Information</h4>
+            <ul class="list-group list-group-flush mb-3">
+                <li class="list-group-item"><strong>Name:</strong> {{ student.name }}</li>
+                <li class="list-group-item"><strong>Section:</strong> {{ student.section.name if student.section else 'N/A' }}</li>
+                <li class="list-group-item"><strong>Gender:</strong> {{ student.gender }}</li>
+                <li class="list-group-item"><strong>Birth Date:</strong> {{ student.birth_date.strftime('%Y-%m-%d') if student.birth_date else 'N/A' }}</li>
+                <li class="list-group-item"><strong>Age:</strong> {{ student.age }}</li>
+                <li class="list-group-item"><strong>Height (cm):</strong> {{ student.height }}</li>
+                <li class="list-group-item"><strong>Weight (kg):</strong> {{ student.weight }}</li>
+                <li class="list-group-item"><strong>BMI:</strong> {{ student.bmi }}</li>
+                <li class="list-group-item"><strong>Preferences/Allergies:</strong> {{ student.preferences }}</li>
+            </ul>
+            <h4>Admin & School Information</h4>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Registered By (Admin):</strong> {{ admin.name if admin else 'N/A' }}</li>
+                <li class="list-group-item"><strong>Admin Email:</strong> {{ admin.email if admin else 'N/A' }}</li>
+                <li class="list-group-item"><strong>School:</strong> {{ school.name if school else 'N/A' }}</li>
+                <li class="list-group-item"><strong>Date Submitted:</strong> {{ student.created_at.strftime('%Y-%m-%d %H:%M') if student.created_at else 'N/A' }}</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %} 

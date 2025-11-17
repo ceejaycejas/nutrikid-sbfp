@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.btn-outline-secondary:hover, .btn-outline-secondary:focus {
+    background-color: #1976d2 !important;
+    color: #fff !important;
+    border-color: #1976d2 !important;
+}
+
+/* Modern Delete Modal Styles */
+.delete-modal .modal-dialog {
+    max-width: 450px;
+    margin: 1.75rem auto;
+}
+
+.delete-modal .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.delete-modal .modal-header {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    border: none;
+    padding: 1.5rem 2rem;
+    position: relative;
+}
+
+.delete-modal .modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.9), rgba(238, 90, 36, 0.9));
+    z-index: 1;
+}
+
+.delete-modal .modal-header * {
+    position: relative;
+    z-index: 2;
+}
+
+.delete-modal .modal-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.delete-modal .btn-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    opacity: 0.8;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+.delete-modal .btn-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+.delete-modal .modal-body {
+    padding: 2rem;
+    text-align: left;
+}
+
+.delete-modal .delete-question {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.delete-modal .delete-warning {
+    color: #718096;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+.delete-modal .modal-footer {
+    border: none;
+    padding: 1.5rem 2rem 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.delete-modal .btn-cancel {
+    background: #6c757d;
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.delete-modal .btn-cancel:hover {
+    background: #5a6268;
+    color: white;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+}
+
+.delete-modal .btn-delete-confirm {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.delete-modal .btn-delete-confirm:hover {
+    background: linear-gradient(135deg, #ee5a24, #c44569);
+    color: white;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+}
+
+/* Complete Animation Removal - No Blinking */
+.delete-modal,
+.delete-modal *,
+.delete-modal *::before,
+.delete-modal *::after {
+    animation: none !important;
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.delete-modal .modal-dialog {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.delete-modal.fade .modal-dialog {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.delete-modal.show .modal-dialog {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+/* Override Bootstrap modal animations completely */
+.delete-modal.fade {
+    transition: none !important;
+}
+
+.delete-modal.fade.show {
+    transition: none !important;
+}
+</style>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('section.grade_sections', grade_id=section.grade_level_id) }}" class="btn btn-outline-secondary me-2" style="vertical-align: middle;"><i class="bi bi-arrow-left"></i> Back</a>
+        </div>
+        <h2>{{ section.name }} - Students</h2>
+        {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('section.add_student', section_id=section.id) }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Student
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Height (cm)</th>
+                            <th>Weight (kg)</th>
+                            <th>BMI</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in section.students %}
+                        <tr>
+                            <td>{{ student.name }}</td>
+                            <td>{{ student.age }}</td>
+                            <td>{{ student.gender }}</td>
+                            <td>{{ student.height }}</td>
+                            <td>{{ student.weight }}</td>
+                            <td>{{ student.bmi }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('student.view', student_id=student.id) }}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <a href="{{ url_for('student.edit', student_id=student.id) }}" 
+                                       class="btn btn-sm btn-secondary">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal{{ student.id }}">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+
+                                <!-- Modern Delete Confirmation Modal -->
+                                <div class="modal delete-modal" id="deleteModal{{ student.id }}" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    <i class="bi bi-exclamation-triangle"></i>
+                                                    Confirm Deletion
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="delete-question">
+                                                    Are you sure you want to delete {{ student.name }}?
+                                                </div>
+                                                <div class="delete-warning">
+                                                    This action cannot be undone and will permanently remove all associated data.
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn-cancel" data-bs-dismiss="modal">
+                                                    <i class="bi bi-x-circle"></i> Cancel
+                                                </button>
+                                                <form action="{{ url_for('student.delete', student_id=student.id) }}" method="POST" style="display: inline;">
+                                                    <button type="submit" class="btn-delete-confirm">
+                                                        <i class="bi bi-trash"></i> Delete Student
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,1520 @@
+{% extends "base.html" %}
+
+{% block dashboard_profile %}
+<div class="dashboard-profile-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  padding: 1rem 1.5rem; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: space-between; color: white; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        {% if current_user.profile_image %}
+        <img src="{{ url_for('static', filename=current_user.profile_image) }}" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; object-fit: contain; object-position: center; border: 3px solid white; padding: 0; flex-shrink: 0; display: block; background: white;">
+        {% else %}
+        <img src="{{ url_for('static', filename='img/LOGO1.png') }}" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 3px solid white;">
+        {% endif %}
+        <div>
+            <h5 style="margin: 0; color: white; font-weight: 600;">{{ current_user.name }}</h5>
+            <span class="role-badge role-{{ current_user.role }}">
+                {% if current_user.role == 'super_admin' %}
+                    <i class="bi bi-shield-check"></i> Super Admin
+                {% elif current_user.role == 'admin' %}
+                    <i class="bi bi-person-badge"></i> Admin
+                {% elif current_user.role == 'student' %}
+                    <i class="bi bi-mortarboard"></i> Student
+                {% else %}
+                    <i class="bi bi-person"></i> {{ current_user.role|title }}
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        {% set unread = current_user.notifications|selectattr('is_read', 'equalto', False)|list|length %}
+        <a href="{{ url_for('account.notifications') }}" style="position: relative; color: white; opacity: 1; text-decoration: none; font-size: 1.2rem; transition: color 0.2s ease;">
+            <i class="bi bi-bell"></i>
+            {% if unread > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="font-size:0.6em; z-index:10;"></span>
+            {% endif %}
+        </a>
+        
+        <!-- Profile Dropdown -->
+        <div class="profile-dropdown" id="profileDropdown" style="position: relative;">
+            <button class="profile-btn" onclick="toggleDropdown(event)" style="background: transparent; border: none; color: white !important; opacity: 1; cursor: pointer; font-size: 1.2rem; padding: 0.25rem; transition: color 0.2s ease; text-shadow: 0 0 2px rgba(0,0,0,0.3); filter: drop-shadow(0 0 1px rgba(0,0,0,0.5));">
+                <i class="bi bi-caret-down-fill" style="color: white !important; text-shadow: 0 0 2px rgba(0,0,0,0.3);"></i>
+            </button>
+            <div class="dropdown-menu profile-menu" id="dropdownMenu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 160px; z-index: 1001; margin-top: 0.5rem;">
+                <a href="{{ url_for('main.index') }}" style="display: flex; align-items: center; padding: 0.75rem 1rem; color: #2c3e50; text-decoration: none; border-bottom: 1px solid #f8f9fa;">
+                    <i class="bi bi-house" style="margin-right: 0.5rem;"></i> Home
+                </a>
+                <a href="{{ url_for('account.settings') }}" style="display: flex; align-items: center; padding: 0.75rem 1rem; color: #2c3e50; text-decoration: none; border-bottom: 1px solid #f8f9fa;">
+                    <i class="bi bi-gear" style="margin-right: 0.5rem;"></i> Settings
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="logout" style="display: flex; align-items: center; padding: 0.75rem 1rem; color: #dc3545; text-decoration: none;">
+                    <i class="bi bi-box-arrow-right" style="margin-right: 0.5rem;"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<style>
+    /* Dashboard Profile Header - Sticky Topbar */
+    .dashboard-profile-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1000 !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* Modern Student Dashboard Styles */
+    .student-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+        position: relative;
+        padding-top: 6rem; /* Space for the absolute positioned topbar + margin */
+    }
+    
+    .welcome-header {
+        margin-top: 1.5rem; /* Additional space between topbar and welcome section */
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(76, 175, 80, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .welcome-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+        animation: float 20s infinite linear;
+    }
+    
+    @keyframes float {
+        0% { transform: translateX(-100px) translateY(-100px); }
+        100% { transform: translateX(100px) translateY(100px); }
+    }
+    
+    .welcome-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .health-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--metric-color, #4CAF50);
+    }
+    
+    .metric-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+        margin-bottom: 1rem;
+        background: var(--metric-color, #4CAF50);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-label {
+        color: #7f8c8d;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    
+    .metric-trend {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 0.9rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .trend-up {
+        background: #e8f5e8;
+        color: #4CAF50;
+    }
+    
+    .trend-down {
+        background: #ffebee;
+        color: #f44336;
+    }
+    
+    .trend-stable {
+        background: #fff3e0;
+        color: #ff9800;
+    }
+    
+    /* BMI Status Colors */
+    .bmi-underweight { --metric-color: #2196F3; }
+    .bmi-normal { --metric-color: #4CAF50; }
+    .bmi-overweight { --metric-color: #FF9800; }
+    .bmi-obese { --metric-color: #f44336; }
+    
+    .nutrition-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .nutrition-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .nutrition-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1rem;
+        position: relative;
+    }
+    
+    .progress-ring svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+    
+    .progress-ring circle {
+        fill: none;
+        stroke-width: 8;
+    }
+    
+    .progress-ring .bg {
+        stroke: #e9ecef;
+    }
+    
+    .progress-ring .progress {
+        stroke: #4CAF50;
+        stroke-linecap: round;
+        transition: stroke-dasharray 0.5s ease;
+    }
+    
+    .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .progress-percentage {
+        font-size: 1.5rem;
+    }
+    
+    .progress-label {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+    
+
+    
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .action-btn {
+        background: white;
+        border: none;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: #2c3e50;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        color: #2c3e50;
+        text-decoration: none;
+    }
+    
+    .action-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    
+    .action-label {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .profile-section {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        text-align: center;
+        margin-bottom: 2rem;
+        border: none;
+        outline: none;
+    }
+    
+    .profile-avatar-large {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        object-fit: contain;
+        object-position: center;
+        border: 5px solid #4CAF50;
+        background: #ffffff;
+        padding: 0;
+        margin: 0 auto 1rem;
+        display: block;
+        box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
+        flex-shrink: 0;
+    }
+    
+    .profile-name {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+        text-align: left;
+    }
+    
+    .profile-detail {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .profile-detail-label {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        font-weight: 500;
+    }
+    
+    .profile-detail-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-top: 0.25rem;
+    }
+    
+
+    
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .health-metrics {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .nutrition-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .student-dashboard {
+            padding: 0 1.5rem;
+        }
+        
+        /* Add space for sidebar toggle on tablets */
+        .dashboard-profile-header > div:first-child {
+            padding-left: 3.5rem;
+        }
+
+        .welcome-header h1 {
+            font-size: 1.25rem;
+        }
+
+        .welcome-header p {
+            font-size: 1.1rem;
+        }
+
+        .metric-value {
+            font-size: 2.25rem;
+        }
+
+        .profile-details {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .student-dashboard {
+            padding: 0 1rem;
+        }
+
+        .welcome-header {
+            padding: 2.5rem 2rem;
+            margin: -2rem -1rem 2rem;
+        }
+
+        .welcome-header h1 {
+            font-size: 1.9rem;
+        }
+
+        .welcome-header p {
+            font-size: 1.05rem;
+        }
+        
+        .health-metrics {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .metric-card {
+            padding: 1.25rem;
+        }
+
+        .metric-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+        }
+
+        .metric-label {
+            font-size: 0.95rem;
+        }
+        
+        .nutrition-section {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .profile-details {
+            grid-template-columns: 1fr;
+            gap: 0.9rem;
+        }
+
+        .profile-detail {
+            padding: 0.9rem;
+        }
+
+        .profile-detail-label {
+            font-size: 0.85rem;
+        }
+
+        .profile-detail-value {
+            font-size: 1rem;
+        }
+
+        .profile-avatar-large {
+            width: 110px;
+            height: 110px;
+            border: 4px solid #4CAF50;
+        }
+
+        .profile-name {
+            font-size: 1.6rem;
+        }
+
+        .dashboard-profile-header {
+            flex-direction: row !important;
+            align-items: center !important;
+            padding: 1rem !important;
+            gap: 0.75rem;
+            justify-content: space-between;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+        }
+        
+        .student-dashboard {
+            padding-top: 5.5rem !important; /* Adjusted for mobile topbar height */
+        }
+
+        .dashboard-profile-header > div:first-child {
+            flex: 1;
+            min-width: 0;
+            padding-left: 3rem; /* Space for sidebar toggle button */
+            margin-left: 0;
+        }
+
+        .dashboard-profile-header > div:last-child {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dashboard-profile-header h5 {
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dashboard-profile-header img {
+            width: 40px !important;
+            height: 40px !important;
+        }
+
+        .dashboard-profile-header .role-badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .student-dashboard {
+            padding: 0 0.75rem;
+        }
+
+        .welcome-header {
+            padding: 2rem 1.5rem;
+            margin: -1.5rem -0.75rem 1.5rem;
+            border-radius: 20px 20px 20px 20px;
+        }
+
+        .welcome-header h1 {
+            font-size: 1.6rem;
+        }
+
+        .welcome-header p {
+            font-size: 1rem;
+        }
+
+        .metric-card {
+            padding: 1rem;
+        }
+
+        .metric-icon {
+            width: 45px;
+            height: 45px;
+            font-size: 1.35rem;
+        }
+
+        .metric-value {
+            font-size: 1.75rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+        }
+
+        .metric-trend {
+            font-size: 0.8rem;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border: 4px solid #4CAF50;
+        }
+
+        .profile-name {
+            font-size: 1.4rem;
+        }
+
+        .profile-detail {
+            padding: 0.8rem;
+        }
+
+        .profile-detail-value {
+            font-size: 0.95rem;
+        }
+
+        .dashboard-profile-header {
+            padding: 0.9rem;
+            flex-direction: row !important;
+            justify-content: space-between;
+            align-items: center !important;
+        }
+
+        .dashboard-profile-header > div:first-child {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .dashboard-profile-header > div:last-child {
+            flex-shrink: 0;
+        }
+
+        .dashboard-profile-header h5 {
+            font-size: 0.9rem;
+        }
+
+        .dashboard-profile-header img {
+            width: 38px !important;
+            height: 38px !important;
+        }
+
+        .quick-actions {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 1.25rem;
+        }
+
+        .action-icon {
+            width: 45px;
+            height: 45px;
+            font-size: 1.3rem;
+        }
+
+        .action-label {
+            font-size: 0.9rem;
+        }
+
+        .nutrition-card {
+            padding: 1.5rem;
+        }
+
+        .nutrition-title {
+            font-size: 1.3rem;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .welcome-header {
+            padding: 1.5rem 1rem;
+        }
+
+        .welcome-header h1 {
+            font-size: 1.4rem;
+        }
+
+        .metric-card {
+            padding: 0.9rem;
+        }
+
+        .metric-value {
+            font-size: 1.6rem;
+        }
+
+        .profile-avatar-large {
+            width: 90px;
+            height: 90px;
+            border: 3px solid #4CAF50;
+        }
+
+        .dashboard-profile-header {
+            padding: 0.75rem !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+        }
+        
+        .student-dashboard {
+            padding-top: 5rem !important; /* Adjusted for smaller mobile topbar */
+        }
+        
+        .dashboard-profile-header > div:first-child {
+            padding-left: 3rem !important; /* Space for sidebar toggle button */
+        }
+
+        .dashboard-profile-header h5 {
+            font-size: 0.85rem;
+        }
+
+        .dashboard-profile-header img {
+            width: 35px !important;
+            height: 35px !important;
+        }
+
+        .dashboard-profile-header .role-badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .action-btn {
+            padding: 1rem;
+        }
+    }
+    
+    /* Profile Dropdown Styles */
+    .profile-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .profile-btn:hover {
+        color: white !important;
+        transform: scale(1.1);
+        transition: all 0.2s ease;
+        animation: none !important;
+        text-shadow: 0 0 4px rgba(0,0,0,0.5) !important;
+        filter: drop-shadow(0 0 2px rgba(0,0,0,0.7)) !important;
+    }
+    
+    .profile-btn:hover i {
+        color: white !important;
+        text-shadow: 0 0 4px rgba(0,0,0,0.5) !important;
+    }
+    
+    .dashboard-profile-header a:hover {
+        color: white !important;
+        animation: bellShake 0.5s ease-in-out;
+        transform: scale(1.1);
+        transition: all 0.2s ease;
+    }
+    
+    @keyframes bellShake {
+        0%, 100% { transform: scale(1.1) rotate(0deg); }
+        25% { transform: scale(1.1) rotate(-10deg); }
+        75% { transform: scale(1.1) rotate(10deg); }
+    }
+    
+    .profile-dropdown.open .profile-menu {
+        display: block !important;
+        animation: fadeInMenu 0.2s ease;
+    }
+    
+    .profile-menu a:hover {
+        background-color: #f8f9fa !important;
+        color: #4CAF50 !important;
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    .profile-menu a.logout:hover {
+        background-color: #fff5f5 !important;
+        color: #dc3545 !important;
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    @keyframes fadeInMenu {
+        from { 
+            opacity: 0; 
+            transform: translateY(-10px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+    }
+    
+    /* Role Badge Styles for Gradient Background */
+    .dashboard-profile-header .role-badge {
+        background: white !important;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.3rem 0.6rem;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-top: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 2px solid;
+    }
+    
+    .dashboard-profile-header .role-badge.role-super_admin {
+        color: #dc3545 !important;
+        border-color: #dc3545 !important;
+    }
+    
+    .dashboard-profile-header .role-badge.role-admin {
+        color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+    
+    .dashboard-profile-header .role-badge.role-student {
+        color: #198754 !important;
+        border-color: #198754 !important;
+    }
+</style>
+
+<div class="student-dashboard">
+    <div class="container">
+        <!-- Welcome Header -->
+        <div class="welcome-header">
+            <div class="welcome-content">
+                <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+                    Welcome back! 🌟
+                </h1>
+                <p style="font-size: 1.2rem; opacity: 0.9; margin: 0;">
+                    Let's track your nutrition journey and stay healthy together
+                </p>
+            </div>
+        </div>
+
+        <!-- Health Metrics Cards -->
+        <div class="health-metrics">
+            <!-- BMI Card -->
+            <div class="metric-card {% if student.bmi %}{% if student.bmi < 18.5 %}bmi-underweight{% elif student.bmi < 25 %}bmi-normal{% elif student.bmi < 30 %}bmi-overweight{% else %}bmi-obese{% endif %}{% endif %}">
+                <div class="metric-icon">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+                <div class="metric-value">
+                    {{ "%.1f"|format(student.bmi) if student.bmi else "N/A" }}
+                </div>
+                <div class="metric-label">Body Mass Index</div>
+                {% if student.bmi %}
+                <div class="metric-trend {% if student.bmi >= 18.5 and student.bmi < 25 %}trend-up{% elif student.bmi < 18.5 or student.bmi >= 30 %}trend-down{% else %}trend-stable{% endif %}">
+                    {% if student.bmi < 18.5 %}
+                        <i class="bi bi-arrow-down"></i> Underweight
+                    {% elif student.bmi < 25 %}
+                        <i class="bi bi-check-circle"></i> Healthy
+                    {% elif student.bmi < 30 %}
+                        <i class="bi bi-exclamation-triangle"></i> Overweight
+                    {% else %}
+                        <i class="bi bi-exclamation-circle"></i> Obese
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Height Card -->
+            <div class="metric-card" style="--metric-color: #2196F3;">
+                <div class="metric-icon">
+                    <i class="bi bi-rulers"></i>
+                </div>
+                <div class="metric-value">
+                    {{ student.height if student.height else "N/A" }}
+                </div>
+                <div class="metric-label">Height (cm)</div>
+            </div>
+
+            <!-- Weight Card -->
+            <div class="metric-card" style="--metric-color: #FF9800;">
+                <div class="metric-icon">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+                <div class="metric-value">
+                    {{ student.weight if student.weight else "N/A" }}
+                </div>
+                <div class="metric-label">Weight (kg)</div>
+            </div>
+
+            <!-- Age Card -->
+            <div class="metric-card" style="--metric-color: #9C27B0;">
+                <div class="metric-icon">
+                    <i class="bi bi-calendar-heart"></i>
+                </div>
+                <div class="metric-value">
+                    {{ student.age }}
+                </div>
+                <div class="metric-label">Age (years)</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="{{ url_for('account.settings') }}" class="action-btn">
+                <div class="action-icon">
+                    <i class="bi bi-person-gear"></i>
+                </div>
+                <div class="action-label">Update Profile</div>
+            </a>
+            
+            <a href="{{ url_for('account.notifications') }}" class="action-btn">
+                <div class="action-icon">
+                    <i class="bi bi-bell"></i>
+                </div>
+                <div class="action-label">Notifications</div>
+            </a>
+            
+            <a href="#" class="action-btn" onclick="showNutritionLog()">
+                <div class="action-icon">
+                    <i class="bi bi-journal-medical"></i>
+                </div>
+                <div class="action-label">Food Log</div>
+            </a>
+            
+            <a href="#" class="action-btn" onclick="showHealthReport()">
+                <div class="action-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="action-label">Health Report</div>
+            </a>
+            
+            <a href="#" class="action-btn" onclick="showHealthChallenge()">
+                <div class="action-icon">
+                    <i class="bi bi-trophy"></i>
+                </div>
+                <div class="action-label">Challenges</div>
+            </a>
+            
+            <a href="#" class="action-btn" onclick="showNutritionTips()">
+                <div class="action-icon">
+                    <i class="bi bi-lightbulb"></i>
+                </div>
+                <div class="action-label">Health Tips</div>
+            </a>
+        </div>
+
+        <!-- Nutrition Section -->
+        <div class="nutrition-section">
+            <!-- Nutrition Goals -->
+            <div class="nutrition-card">
+                <div class="nutrition-title">
+                    <i class="bi bi-bullseye" style="color: #4CAF50;"></i>
+                    Daily Nutrition Goals
+                </div>
+                
+                <!-- Calories Progress -->
+                <div class="text-center mb-4">
+                    <div class="progress-ring">
+                        <svg>
+                            <circle class="bg" cx="60" cy="60" r="52"></circle>
+                            <circle class="progress" cx="60" cy="60" r="52" 
+                                    data-percentage="75" data-circumference="326.73"></circle>
+                        </svg>
+                        <div class="progress-text">
+                            <div class="progress-percentage">75%</div>
+                            <div class="progress-label">Calories</div>
+                        </div>
+                    </div>
+                    <p style="color: #7f8c8d; margin: 0;">1,500 / 2,000 kcal</p>
+                </div>
+
+                <!-- Nutrition Breakdown -->
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div style="color: #4CAF50; font-weight: 700; font-size: 1.2rem;">65%</div>
+                        <div style="color: #7f8c8d; font-size: 0.9rem;">Carbs</div>
+                    </div>
+                    <div class="col-4">
+                        <div style="color: #2196F3; font-weight: 700; font-size: 1.2rem;">20%</div>
+                        <div style="color: #7f8c8d; font-size: 0.9rem;">Protein</div>
+                    </div>
+                    <div class="col-4">
+                        <div style="color: #FF9800; font-weight: 700; font-size: 1.2rem;">15%</div>
+                        <div style="color: #7f8c8d; font-size: 0.9rem;">Fats</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Tips -->
+            <div class="nutrition-card">
+                <div class="nutrition-title">
+                    <i class="bi bi-lightbulb" style="color: #FF9800;"></i>
+                    Health Tips for You
+                </div>
+                
+                <div class="health-tips">
+                    {% if student.bmi %}
+                        {% if student.bmi < 18.5 %}
+                            <div class="alert" style="background: #e3f2fd; border-left: 4px solid #2196F3; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <strong>💪 Gain Weight Healthily</strong><br>
+                                Focus on nutrient-dense foods like nuts, avocados, and lean proteins.
+                            </div>
+                        {% elif student.bmi >= 25 %}
+                            <div class="alert" style="background: #fff3e0; border-left: 4px solid #FF9800; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <strong>🏃‍♂️ Stay Active</strong><br>
+                                Combine regular exercise with a balanced diet for healthy weight management.
+                            </div>
+                        {% else %}
+                            <div class="alert" style="background: #e8f5e8; border-left: 4px solid #4CAF50; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <strong>✨ Great Job!</strong><br>
+                                You're maintaining a healthy weight. Keep up the good work!
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <div class="rotating-tip" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; transition: opacity 0.3s ease;">
+                        <strong>🥗 Today's Tip:</strong><br>
+                        Eat a rainbow of fruits and vegetables to get diverse nutrients!
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                        <strong>💧 Hydration Goal:</strong><br>
+                        Aim for 8 glasses of water daily to stay properly hydrated.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Health Challenge -->
+        <div class="nutrition-card" style="margin-bottom: 2rem;">
+            <div class="nutrition-title">
+                <i class="bi bi-trophy" style="color: #FF9800;"></i>
+                This Week's Health Challenge
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #FF9800, #F57C00); color: white; padding: 1.5rem; border-radius: 15px; margin-bottom: 1rem; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -20px; right: -20px; font-size: 4rem; opacity: 0.2;">🏆</div>
+                <h4 style="margin: 0 0 0.5rem 0; font-weight: 700;">Hydration Hero Challenge</h4>
+                <p style="margin: 0 0 1rem 0; opacity: 0.9;">Drink 8 glasses of water every day this week!</p>
+                
+                <!-- Progress Bar -->
+                <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 8px; margin-bottom: 0.5rem;">
+                    <div style="background: white; height: 100%; border-radius: 10px; width: 60%; transition: width 0.5s ease;"></div>
+                </div>
+                <small style="opacity: 0.8;">4 out of 7 days completed • 60% progress</small>
+            </div>
+            
+            <div class="row text-center">
+                <div class="col-4">
+                    <div style="background: #e8f5e8; padding: 1rem; border-radius: 10px;">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🥇</div>
+                        <div style="font-size: 0.9rem; color: #4CAF50; font-weight: 600;">Gold Level</div>
+                        <div style="font-size: 0.8rem; color: #7f8c8d;">7/7 days</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div style="background: #f0f0f0; padding: 1rem; border-radius: 10px;">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🥈</div>
+                        <div style="font-size: 0.9rem; color: #757575; font-weight: 600;">Silver Level</div>
+                        <div style="font-size: 0.8rem; color: #7f8c8d;">5-6 days</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div style="background: #fff3e0; padding: 1rem; border-radius: 10px;">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🥉</div>
+                        <div style="font-size: 0.9rem; color: #FF9800; font-weight: 600;">Bronze Level</div>
+                        <div style="font-size: 0.8rem; color: #7f8c8d;">3-4 days</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <!-- Removed: Profile section moved to separate profile page -->
+
+    </div>
+</div>
+
+<script>
+// Enhanced Dashboard Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate metric cards on load
+    const metricCards = document.querySelectorAll('.metric-card');
+    metricCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+
+    // Animate progress ring
+    setTimeout(() => {
+        const progressRing = document.querySelector('.progress-ring .progress');
+        if (progressRing) {
+            progressRing.style.strokeDasharray = '244 326.73'; // 75% of 326.73
+        }
+    }, 1000);
+
+    // Add click effects to action buttons
+    const actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // Create ripple effect
+            const ripple = document.createElement('div');
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255,255,255,0.3)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'ripple 0.6s linear';
+            ripple.style.left = (e.clientX - this.offsetLeft - 25) + 'px';
+            ripple.style.top = (e.clientY - this.offsetTop - 25) + 'px';
+            ripple.style.width = '50px';
+            ripple.style.height = '50px';
+            
+            this.style.position = 'relative';
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+
+    // Health tip rotation
+    const healthTips = [
+        "🥗 Eat a rainbow of fruits and vegetables to get diverse nutrients!",
+        "💧 Aim for 8 glasses of water daily to stay properly hydrated.",
+        "🏃‍♂️ Get at least 30 minutes of physical activity every day.",
+        "😴 Aim for 8-10 hours of sleep each night for optimal health.",
+        "🥜 Include healthy fats like nuts and avocados in your diet.",
+        "🍎 Choose whole fruits over fruit juices for better nutrition.",
+        "🥛 Include calcium-rich foods for strong bones and teeth.",
+        "🌾 Choose whole grains over refined grains for better nutrition."
+    ];
+
+    let currentTipIndex = 0;
+    const tipElement = document.querySelector('.rotating-tip');
+    if (tipElement) {
+        setInterval(() => {
+            currentTipIndex = (currentTipIndex + 1) % healthTips.length;
+            tipElement.style.opacity = '0';
+            setTimeout(() => {
+                tipElement.innerHTML = `<strong>${healthTips[currentTipIndex].split(' ')[0]} Today's Tip:</strong><br>${healthTips[currentTipIndex].substring(healthTips[currentTipIndex].indexOf(' ') + 1)}`;
+                tipElement.style.opacity = '1';
+            }, 300);
+        }, 5000);
+    }
+});
+
+// Add ripple animation keyframes
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+`;
+document.head.appendChild(style);
+
+function showNutritionLog() {
+    // Create modal for nutrition log
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); z-index: 10000; display: flex;
+        align-items: center; justify-content: center; opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white; border-radius: 20px; padding: 2rem;
+        max-width: 500px; width: 90%; text-align: center;
+        transform: scale(0.8); transition: transform 0.3s ease;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🍎</div>
+        <h3 style="color: #2c3e50; margin-bottom: 1rem;">Food Log Feature</h3>
+        <p style="color: #7f8c8d; margin-bottom: 1.5rem;">
+                            This feature will help you track your daily nutrition and health data. 
+            You'll be able to log breakfast, lunch, dinner, and snacks with detailed nutritional information.
+        </p>
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+            <strong>Coming Soon Features:</strong><br>
+            • Health data tracking<br>
+            • BMI monitoring<br>
+            • Nutritional analysis<br>
+            • Weekly health monitoring
+        </div>
+        <button onclick="this.closest('.modal-overlay').remove()" 
+                style="background: linear-gradient(135deg, #4CAF50, #45a049); 
+                       border: none; border-radius: 25px; padding: 0.75rem 2rem; 
+                       color: white; font-weight: 600; cursor: pointer;">
+            Got it!
+        </button>
+    `;
+    
+    modal.className = 'modal-overlay';
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modalContent.style.transform = 'scale(1)';
+    }, 10);
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+function showHealthReport() {
+    // Create modal for health report
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); z-index: 10000; display: flex;
+        align-items: center; justify-content: center; opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white; border-radius: 20px; padding: 2rem;
+        max-width: 600px; width: 90%; text-align: center;
+        transform: scale(0.8); transition: transform 0.3s ease;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+        <h3 style="color: #2c3e50; margin-bottom: 1rem;">Health Progress Report</h3>
+        <p style="color: #7f8c8d; margin-bottom: 1.5rem;">
+            This feature will show your health progress over time with detailed charts and insights.
+            Track your BMI changes, weight trends, and nutrition goals achievement.
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background: #e8f5e8; padding: 1rem; border-radius: 10px;">
+                <strong style="color: #4CAF50;">📈 Progress Tracking</strong><br>
+                <small>BMI trends over time</small>
+            </div>
+            <div style="background: #e3f2fd; padding: 1rem; border-radius: 10px;">
+                <strong style="color: #2196F3;">🎯 Goal Achievement</strong><br>
+                <small>Nutrition targets met</small>
+            </div>
+            <div style="background: #fff3e0; padding: 1rem; border-radius: 10px;">
+                <strong style="color: #FF9800;">📋 Health Insights</strong><br>
+                <small>Personalized recommendations</small>
+            </div>
+            <div style="background: #f3e5f5; padding: 1rem; border-radius: 10px;">
+                <strong style="color: #9C27B0;">🏆 Achievements</strong><br>
+                <small>Health milestones</small>
+            </div>
+        </div>
+        <button onclick="this.closest('.modal-overlay').remove()" 
+                style="background: linear-gradient(135deg, #2196F3, #1976D2); 
+                       border: none; border-radius: 25px; padding: 0.75rem 2rem; 
+                       color: white; font-weight: 600; cursor: pointer;">
+            Awesome!
+        </button>
+    `;
+    
+    modal.className = 'modal-overlay';
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modalContent.style.transform = 'scale(1)';
+    }, 10);
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// BMI Calculator Helper
+function calculateBMICategory(bmi) {
+    if (!bmi) return { category: 'Unknown', color: '#757575', advice: 'Please update your height and weight.' };
+    
+    if (bmi < 18.5) {
+        return {
+            category: 'Underweight',
+            color: '#2196F3',
+            advice: 'Focus on nutrient-dense foods and consider consulting a nutritionist.'
+        };
+    } else if (bmi < 25) {
+        return {
+            category: 'Normal Weight',
+            color: '#4CAF50',
+            advice: 'Great job! Maintain your healthy lifestyle with balanced nutrition and regular exercise.'
+        };
+    } else if (bmi < 30) {
+        return {
+            category: 'Overweight',
+            color: '#FF9800',
+            advice: 'Consider increasing physical activity and focusing on portion control.'
+        };
+    } else {
+        return {
+            category: 'Obese',
+            color: '#f44336',
+            advice: 'Consult with a healthcare provider for a personalized weight management plan.'
+        };
+    }
+}
+
+// Add motivational quotes
+const motivationalQuotes = [
+    "Your body is your temple. Keep it pure and clean for the soul to reside in. 🏛️",
+    "Health is not about the weight you lose, but about the life you gain. 🌟",
+    "Take care of your body. It's the only place you have to live. 🏠",
+    "A healthy outside starts from the inside. 💚",
+    "Your health is an investment, not an expense. 💰"
+];
+
+// Display random motivational quote
+function showMotivationalQuote() {
+    const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+    const quoteElement = document.createElement('div');
+    quoteElement.style.cssText = `
+        position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white; padding: 1rem; border-radius: 10px; max-width: 300px;
+        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3); z-index: 1000;
+        transform: translateX(100%); transition: transform 0.5s ease;
+    `;
+    quoteElement.innerHTML = `
+        <div style="font-size: 0.9rem; font-weight: 500;">${quote}</div>
+        <button onclick="this.parentElement.remove()" 
+                style="position: absolute; top: 5px; right: 8px; background: none; 
+                       border: none; color: white; font-size: 1.2rem; cursor: pointer;">×</button>
+    `;
+    
+    document.body.appendChild(quoteElement);
+    
+    setTimeout(() => {
+        quoteElement.style.transform = 'translateX(0)';
+    }, 100);
+    
+    setTimeout(() => {
+        if (quoteElement.parentElement) {
+            quoteElement.style.transform = 'translateX(100%)';
+            setTimeout(() => quoteElement.remove(), 500);
+        }
+    }, 8000);
+}
+
+// Show motivational quote on page load
+setTimeout(showMotivationalQuote, 3000);
+
+function showHealthChallenge() {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); z-index: 10000; display: flex;
+        align-items: center; justify-content: center; opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white; border-radius: 20px; padding: 2rem;
+        max-width: 600px; width: 90%; text-align: center;
+        transform: scale(0.8); transition: transform 0.3s ease;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
+        <h3 style="color: #2c3e50; margin-bottom: 1rem;">Health Challenges</h3>
+        <p style="color: #7f8c8d; margin-bottom: 1.5rem;">
+            Join weekly health challenges to build healthy habits and compete with your classmates!
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem; text-align: left;">
+            <div style="background: #e8f5e8; padding: 1rem; border-radius: 10px; border-left: 4px solid #4CAF50;">
+                <strong>🚰 Hydration Hero (Current)</strong><br>
+                <small>Drink 8 glasses of water daily for a week</small>
+            </div>
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; border-left: 4px solid #757575;">
+                <strong>🥗 Veggie Champion (Next Week)</strong><br>
+                <small>Eat 5 servings of fruits and vegetables daily</small>
+            </div>
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; border-left: 4px solid #757575;">
+                <strong>🏃‍♂️ Active Achiever (Coming Soon)</strong><br>
+                <small>Get 30 minutes of physical activity daily</small>
+            </div>
+        </div>
+        <button onclick="this.closest('.modal-overlay').remove()" 
+                style="background: linear-gradient(135deg, #FF9800, #F57C00); 
+                       border: none; border-radius: 25px; padding: 0.75rem 2rem; 
+                       color: white; font-weight: 600; cursor: pointer;">
+            Join Challenge!
+        </button>
+    `;
+    
+    modal.className = 'modal-overlay';
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modalContent.style.transform = 'scale(1)';
+    }, 10);
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+function showNutritionTips() {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); z-index: 10000; display: flex;
+        align-items: center; justify-content: center; opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white; border-radius: 20px; padding: 2rem;
+        max-width: 700px; width: 90%; text-align: center;
+        transform: scale(0.8); transition: transform 0.3s ease;
+        max-height: 80vh; overflow-y: auto;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 1rem;">💡</div>
+        <h3 style="color: #2c3e50; margin-bottom: 1rem;">Personalized Health Tips</h3>
+        <p style="color: #7f8c8d; margin-bottom: 1.5rem;">
+            Get personalized nutrition and health advice based on your current health status.
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; text-align: left;">
+            <div style="background: #e8f5e8; padding: 1rem; border-radius: 10px;">
+                <strong style="color: #4CAF50;">🥬 Nutrition</strong><br>
+                <small>• Eat colorful vegetables<br>• Choose whole grains<br>• Include lean proteins</small>
+            </div>
+            <div style="background: #e3f2fd; padding: 1rem; border-radius: 10px;">
+                <strong style="color: #2196F3;">💧 Hydration</strong><br>
+                <small>• Drink water regularly<br>• Limit sugary drinks<br>• Monitor urine color</small>
+            </div>
+            <div style="background: #fff3e0; padding: 1rem; border-radius: 10px;">
+                <strong style="color: #FF9800;">🏃‍♂️ Exercise</strong><br>
+                <small>• 30 min daily activity<br>• Mix cardio & strength<br>• Find fun activities</small>
+            </div>
+            <div style="background: #f3e5f5; padding: 1rem; border-radius: 10px;">
+                <strong style="color: #9C27B0;">😴 Sleep</strong><br>
+                <small>• 8-10 hours nightly<br>• Consistent schedule<br>• Screen-free bedtime</small>
+            </div>
+        </div>
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; text-align: left;">
+            <strong>📱 Daily Reminders:</strong><br>
+            • Morning: Start with a glass of water<br>
+                            • Lunch: Include vegetables in your diet<br>
+            • Afternoon: Take a 10-minute walk<br>
+            • Evening: Prepare for quality sleep
+        </div>
+        <button onclick="this.closest('.modal-overlay').remove()" 
+                style="background: linear-gradient(135deg, #4CAF50, #45a049); 
+                       border: none; border-radius: 25px; padding: 0.75rem 2rem; 
+                       color: white; font-weight: 600; cursor: pointer;">
+            Thanks for the tips!
+        </button>
+    `;
+    
+    modal.className = 'modal-overlay';
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modalContent.style.transform = 'scale(1)';
+    }, 10);
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// Profile dropdown functionality
+function toggleDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('profileDropdown');
+    dropdown.classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('profileDropdown');
+    if (dropdown && !dropdown.contains(event.target)) {
+        dropdown.classList.remove('open');
+    }
+});
+
+// Close dropdown when pressing Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown) {
+            dropdown.classList.remove('open');
+        }
+    }
+});
+
+// Set progress circle stroke-dasharray from data attributes
+document.addEventListener('DOMContentLoaded', function() {
+    const progressCircles = document.querySelectorAll('circle.progress[data-percentage]');
+    progressCircles.forEach(circle => {
+        const percentage = parseFloat(circle.getAttribute('data-percentage'));
+        const circumference = parseFloat(circle.getAttribute('data-circumference'));
+        const offset = (percentage * circumference) / 100;
+        circle.style.strokeDasharray = `${offset} ${circumference}`;
+    });
+});
+</script>
+{% endblock %} 

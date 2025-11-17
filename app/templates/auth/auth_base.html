@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NutriKid Auth{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            /* Using colors inspired by the register page image */
+            --auth-primary-color: #007bff; /* Blue */
+            --auth-secondary-color: #ffffff; /* White */
+            --auth-text-light: #ffffff;
+            --auth-text-dark: #333333;
+            --auth-input-border: #ced4da;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        body.auth-page {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+            background-image: url("{{ url_for('static', filename='img/background.jpg') }}");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .auth-container {
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            min-height: 600px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+        .auth-panel {
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .auth-panel.left {
+            flex-basis: 40%;
+            background-color: #007bff;
+            color: var(--auth-text-light);
+            border-radius: 15px 0 0 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        .auth-panel.right {
+            flex-basis: 60%; /* Adjust panel width ratio */
+            background-color: var(--auth-secondary-color);
+            color: var(--auth-text-dark);
+            border-radius: 0 15px 15px 0; /* Rounded corners on the right */
+        }
+        .auth-logo img {
+            height: 60px; /* Adjust logo size */
+            margin-bottom: 20px;
+        }
+        .auth-panel h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .auth-panel p {
+            font-size: 1rem;
+            margin-bottom: 25px;
+            max-width: 300px;
+        }
+        .auth-panel .btn-outline-light,
+        .auth-panel .btn-outline-primary {
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-weight: 500;
+            border-width: 2px;
+        }
+
+        .right h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--auth-text-dark);
+        }
+        .form-label {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 0.3rem;
+            display: block; /* Ensure label is above input */
+            text-align: left;
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--auth-input-border);
+            background-color: #f8f9fa; /* Light background for fields */
+            margin-bottom: 1rem; /* Space below each field */
+        }
+        .form-control:focus {
+            background-color: white;
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .btn-primary {
+            background-color: var(--auth-primary-color);
+            border-color: var(--auth-primary-color);
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            width: 60%; /* Adjust button width */
+            margin: 15px auto 0; /* Center button with margin */
+            display: block;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .auth-link {
+            display: block;
+            text-align: right; /* Align forgot link */
+            margin-top: -10px; /* Adjust position relative to password */
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: var(--auth-primary-color);
+            text-decoration: none;
+        }
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+         /* Password visibility toggle */
+         .password-wrapper {
+            position: relative;
+            margin-bottom: 0; /* Remove default margin below wrapper if link is below */
+         }
+         .password-toggle {
+             position: absolute;
+             right: 15px;
+             top: calc(50% - 0.5rem); /* Adjust vertical position within input */
+             transform: translateY(-50%);
+             cursor: pointer;
+             color: #6c757d;
+         }
+         .alert {
+             margin-bottom: 1rem;
+             border-radius: 8px;
+             padding: 0.8rem 1rem;
+             font-size: 0.9rem;
+         }
+
+        /* Mobile Responsive Styles */
+        @media screen and (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+                min-height: auto;
+                border-radius: 0;
+                box-shadow: none;
+                background-color: transparent;
+            }
+            
+            .auth-panel {
+                width: 100%;
+                min-height: 100vh;
+                padding: 30px 20px;
+            }
+            
+            .auth-panel.left {
+                border-radius: 0;
+                flex-basis: auto;
+            }
+            
+            .auth-panel.right {
+                border-radius: 0;
+                flex-basis: auto;
+            }
+            
+            body.auth-page {
+                padding: 0;
+            }
+        }
+
+    </style>
+</head>
+<body class="auth-page">
+
+    <div class="auth-container">
+        {% block auth_content %}
+        <!-- Content will be structured in two panels by child templates -->
+        {% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 
