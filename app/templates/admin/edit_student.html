@@ -265,13 +265,36 @@
                                 <i class="bi bi-envelope"></i>
                                 Email *
                             </label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email if user else '' }}" required 
+                            <input type="email" class="form-control" id="email" name="email" value="{% if user and user.email %}{{ user.email }}{% elif student.user and student.user.email %}{{ student.user.email }}{% endif %}" required 
                                    placeholder="Enter email address">
                         </div>
                     </div>
                 </div>
                 
                 <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="grade_level_id" class="form-label">
+                                <i class="bi bi-mortarboard"></i>
+                                Grade Level
+                            </label>
+                            <select class="form-control" id="grade_level_id" name="grade_level_id">
+                                <option value="">Select Grade Level</option>
+                                {% for grade_level in grade_levels %}
+                                <option value="{{ grade_level.id }}" 
+                                    {% if student.section %}
+                                        {% if student.section.grade_level and student.section.grade_level.id == grade_level.id %}
+                                            selected
+                                        {% elif student.section.grade_level_id == grade_level.id %}
+                                            selected
+                                        {% endif %}
+                                    {% endif %}>
+                                    {{ grade_level.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="section_id" class="form-label">
@@ -281,11 +304,18 @@
                             <select class="form-control" id="section_id" name="section_id">
                                 <option value="">Select Section</option>
                                 {% for section in sections %}
-                                <option value="{{ section.id }}" {% if student.section_id == section.id %}selected{% endif %}>{{ section.name }}</option>
+                                <option value="{{ section.id }}" 
+                                    data-grade-level="{{ section.grade_level_id }}"
+                                    {% if student.section_id == section.id %}selected{% endif %}>
+                                    {{ section.name }}
+                                </option>
                                 {% endfor %}
                             </select>
                         </div>
                     </div>
+                </div>
+                
+                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="birth_date" class="form-label">
@@ -295,9 +325,6 @@
                             <input type="date" class="form-control" id="birth_date" name="birth_date" value="{{ student.birth_date.strftime('%Y-%m-%d') if student.birth_date else '' }}">
                         </div>
                     </div>
-                </div>
-                
-                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="gender" class="form-label">
@@ -311,6 +338,9 @@
                             </select>
                         </div>
                     </div>
+                </div>
+                
+                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="height" class="form-label">
@@ -321,9 +351,6 @@
                                    placeholder="Enter height in cm">
                         </div>
                     </div>
-                </div>
-                
-                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="weight" class="form-label">
@@ -334,6 +361,9 @@
                                    placeholder="Enter weight in kg">
                         </div>
                     </div>
+                </div>
+                
+                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="preferences" class="form-label">
@@ -369,4 +399,84 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const gradeLevelSelect = document.getElementById('grade_level_id');
+    const sectionSelect = document.getElementById('section_id');
+    
+    // Store all sections with their grade levels
+    const allSections = Array.from(sectionSelect.options).slice(1).map(option => ({
+        value: option.value,
+        text: option.text,
+        gradeLevel: option.getAttribute('data-grade-level'),
+        element: option
+    }));
+    
+    // Function to filter sections based on selected grade level
+    function filterSectionsByGradeLevel() {
+        const selectedGradeLevelId = gradeLevelSelect.value;
+        const currentlySelectedSection = sectionSelect.value;
+        
+        // Clear all options except the first one
+        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+        
+        if (selectedGradeLevelId) {
+            // Add sections that belong to the selected grade level
+            allSections.forEach(section => {
+                if (section.gradeLevel === selectedGradeLevelId) {
+                    const option = document.createElement('option');
+                    option.value = section.value;
+                    option.textContent = section.text;
+                    option.setAttribute('data-grade-level', section.gradeLevel);
+                    sectionSelect.appendChild(option);
+                }
+            });
+            
+            // If the currently selected section belongs to the selected grade level, keep it selected
+            if (currentlySelectedSection) {
+                const selectedSection = allSections.find(s => s.value === currentlySelectedSection);
+                if (selectedSection && selectedSection.gradeLevel === selectedGradeLevelId) {
+                    sectionSelect.value = currentlySelectedSection;
+                }
+            }
+        } else {
+            // If no grade level is selected, show all sections
+            allSections.forEach(section => {
+                const option = document.createElement('option');
+                option.value = section.value;
+                option.textContent = section.text;
+                option.setAttribute('data-grade-level', section.gradeLevel);
+                if (section.value === currentlySelectedSection) {
+                    option.selected = true;
+                }
+                sectionSelect.appendChild(option);
+            });
+        }
+    }
+    
+    // When grade level changes, filter sections
+    if (gradeLevelSelect) {
+        gradeLevelSelect.addEventListener('change', filterSectionsByGradeLevel);
+        
+        // Also filter on page load if a grade level is already selected
+        if (gradeLevelSelect.value) {
+            filterSectionsByGradeLevel();
+        }
+    }
+    
+    // When section changes, update grade level to match (if section is selected first)
+    if (sectionSelect) {
+        sectionSelect.addEventListener('change', function() {
+            const selectedSectionId = this.value;
+            if (selectedSectionId) {
+                const selectedSection = allSections.find(s => s.value === selectedSectionId);
+                if (selectedSection && gradeLevelSelect) {
+                    gradeLevelSelect.value = selectedSection.gradeLevel;
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

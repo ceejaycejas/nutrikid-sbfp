@@ -497,70 +497,6 @@
             opacity: 1;
             transform: translateY(0);
         }
-        
-        /* Page Transition Overlay */
-        .page-transition-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
-        
-        .page-transition-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-        
-        .transition-content {
-            text-align: center;
-            color: white;
-            transform: scale(0.8);
-            opacity: 0;
-            transition: all 0.5s ease 0.3s;
-        }
-        
-        .page-transition-overlay.active .transition-content {
-            transform: scale(1);
-            opacity: 1;
-        }
-        
-        .transition-logo {
-            width: 150px;
-            height: 150px;
-            margin: 0 auto 2rem;
-            animation: logoSpinBig 1s ease-in-out infinite;
-        }
-        
-        @keyframes logoSpinBig {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.2); }
-        }
-        
-        .transition-text {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-top: 1rem;
-        }
-        
-        .transition-dots {
-            display: inline-block;
-            animation: dotPulse 1.5s infinite;
-        }
-        
-        @keyframes dotPulse {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
     </style>
 </head>
 <body>
@@ -594,18 +530,6 @@
             }
         });
     </script>
-    <!-- Page Transition Overlay -->
-    <div class="page-transition-overlay" id="pageTransition">
-        <div class="transition-content">
-            <div class="transition-logo">
-                <img src="{{ url_for('static', filename='img/LOGO1.png') }}" alt="Loading" style="width: 100%; height: 100%; object-fit: contain;">
-            </div>
-            <div class="transition-text">
-                Loading<span class="transition-dots">...</span>
-            </div>
-        </div>
-    </div>
-
     <!-- Navbar -->
 <nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100vw !important; max-width: 100% !important; z-index: 999999 !important; background: rgba(255, 255, 255, 0.98) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important; backdrop-filter: blur(10px) !important; transform: translateZ(0) !important;">
     <div class="container">
@@ -1188,33 +1112,6 @@
         // Observe all animate-on-scroll elements
         document.querySelectorAll('.animate-on-scroll').forEach(element => {
             observer.observe(element);
-        });
-        
-        // Page Transition Animation for Sign In buttons
-        function animatePageTransition(url) {
-            const overlay = document.getElementById('pageTransition');
-            
-            // Show overlay with animation
-            overlay.classList.add('active');
-            
-            // Navigate after animation
-            setTimeout(() => {
-                window.location.href = url;
-            }, 1000);
-        }
-        
-        // Attach to all Sign In buttons
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get all Sign In links
-            const signInButtons = document.querySelectorAll('a[href*="login"], .btn-primary-custom[href*="login"]');
-            
-            signInButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const url = this.getAttribute('href');
-                    animatePageTransition(url);
-                });
-            });
         });
         
         // Page load animation (reverse of exit)

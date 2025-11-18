@@ -10,6 +10,7 @@ from app.models.user_activity import UserActivity
 from datetime import datetime, timedelta
 from app.services.notification_service import NotificationService
 from sqlalchemy import text, inspect
+from sqlalchemy.orm import joinedload
 import calendar
 import traceback
 
@@ -1376,7 +1377,11 @@ def edit_student(student_id):
         flash('Unauthorized access', 'danger')
         return redirect(url_for('school.dashboard'))
     
-    student = Student.query.filter_by(id=student_id, school_id=current_user.school_id).first_or_404()
+    # Load student with relationships
+    student = Student.query.options(
+        joinedload(Student.section).joinedload(Section.grade_level),
+        joinedload(Student.user)
+    ).filter_by(id=student_id, school_id=current_user.school_id).first_or_404()
     
     if request.method == 'POST':
         try:
@@ -1385,10 +1390,29 @@ def edit_student(student_id):
             birth_date_str = request.form.get('birth_date')
             student.gender = request.form.get('gender')
             
+            # Update user email if user exists
+            email = request.form.get('email')
+            if email and student.user_id:
+                user = User.query.get(student.user_id)
+                if user:
+                    # Check if email is being changed and if new email already exists
+                    if user.email != email:
+                        existing_user = User.query.filter_by(email=email).first()
+                        if existing_user and existing_user.id != user.id:
+                            flash('Email already exists. Please use a different email address.', 'danger')
+                            return redirect(url_for('school.edit_student', student_id=student_id))
+                    user.email = email
+                    
+                    # Update password if provided
+                    new_password = request.form.get('new_password')
+                    if new_password and new_password.strip():
+                        user.set_password(new_password)
+            
             # Safely convert form data with default values
             height_value = request.form.get('height')
             weight_value = request.form.get('weight')
             section_id_value = request.form.get('section_id')
+            grade_level_id_value = request.form.get('grade_level_id')
             
             # Convert with proper validation
             if height_value is not None and height_value != '':
@@ -1405,9 +1429,24 @@ def edit_student(student_id):
                     flash('Invalid weight value.', 'danger')
                     return redirect(url_for('school.edit_student', student_id=student_id))
             
-            if section_id_value is not None and section_id_value != '':
+            # Validate grade level and section relationship
+            if section_id_value and section_id_value != '':
                 try:
-                    student.section_id = int(section_id_value)
+                    section_id_int = int(section_id_value)
+                    section = Section.query.get(section_id_int)
+                    
+                    if section:
+                        # If grade level is provided, validate it matches the section's grade level
+                        if grade_level_id_value and grade_level_id_value != '':
+                            grade_level_id_int = int(grade_level_id_value)
+                            if section.grade_level_id != grade_level_id_int:
+                                flash('The selected section does not belong to the selected grade level.', 'danger')
+                                return redirect(url_for('school.edit_student', student_id=student_id))
+                        
+                        student.section_id = section_id_int
+                    else:
+                        flash('Invalid section selected.', 'danger')
+                        return redirect(url_for('school.edit_student', student_id=student_id))
                 except ValueError:
                     flash('Invalid section value.', 'danger')
                     return redirect(url_for('school.edit_student', student_id=student_id))
@@ -1460,8 +1499,29 @@ def edit_student(student_id):
             db.session.rollback()
             flash(f'Error updating student: {str(e)}', 'danger')
     
+    grade_levels = GradeLevel.query.filter_by(school_id=current_user.school_id).order_by(GradeLevel.name).all()
     sections = Section.query.filter_by(school_id=current_user.school_id).all()
-    return render_template('admin/edit_student.html', student=student, sections=sections)
+    
+    # Create a dictionary mapping grade_level_id to sections for easier JavaScript access
+    sections_by_grade = {}
+    for section in sections:
+        grade_key = str(section.grade_level_id)
+        if grade_key not in sections_by_grade:
+            sections_by_grade[grade_key] = []
+        sections_by_grade[grade_key].append({
+            'id': section.id,
+            'name': section.name
+        })
+    
+    # Get user for email
+    user = User.query.get(student.user_id) if student.user_id else None
+    
+    return render_template('admin/edit_student.html', 
+                         student=student, 
+                         user=user,
+                         sections=sections,
+                         grade_levels=grade_levels,
+                         sections_by_grade=sections_by_grade)
 
 @bp.route('/students/<int:student_id>/delete', methods=['POST'])
 @login_required

@@ -956,7 +956,7 @@
                             <th>Student Information</th>
                         <th>Age</th>
                         <th>Gender</th>
-                        <th>Section</th>
+                        <th>GRADE LEVEL & SECTION</th>
                         <th>BMI Status</th>
                         <th>Actions</th>
                     </tr>
@@ -985,7 +985,15 @@
                             </span>
                         </td>
                         <td>
-                            <span class="fw-semibold">{{ student.section.name if student.section else 'N/A' }}</span>
+                            {% if student.section %}
+                                {% if student.section.grade_level %}
+                                    <span class="fw-semibold">{{ student.section.grade_level.name }} - {{ student.section.name }}</span>
+                                {% else %}
+                                    <span class="fw-semibold">{{ student.section.name }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="fw-semibold">N/A</span>
+                            {% endif %}
                         </td>
                         <td>
                             {% if student.bmi %}
